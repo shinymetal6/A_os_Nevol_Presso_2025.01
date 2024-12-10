@@ -23,7 +23,7 @@
 #include "A_os_includes.h"
 #include "presso.h"
 #include "process_3_dwin_hmi.h"
-#include "DWIN/dwin_state_machine.h"
+#include "DWIN/dwin_criocob_state_machine.h"
 #include "DWIN/dwin_common.h"
 
 extern	NevolSystem_t	NevolSystem;
@@ -45,7 +45,6 @@ UART_Drv_TypeDef Uart2_Drv =
 	.wakeup_id = WAKEUP_FROM_UART2_IRQ,
 	.timeout = 50,
 	.flags = UART_USES_DMA_TX | UART_USES_DMA_RX | UART_WAKEUP_ON_RXFULL | UART_WAKEUP_ON_TIMEOUT,
-	//.flags = UART_WAKEUP_ON_TIMEOUT,
 };
 
 uint32_t	uart2_driver_handle;
@@ -74,8 +73,9 @@ void led_process(void)
 void process_3_dwin_hmi(uint32_t process_id)
 {
 uint32_t	wakeup,flags;
-
-	NevolSystem.machine = BIOACTIVE_CRIO;
+#ifdef	MACHINE_IS_CRIOCOB
+	NevolSystem.machine = COBROLL;
+#endif
 	NevolSystem.powerup_val = POWERUP_WAIT;
 
 	uart2_driver_handle = uart_register(&Uart2_Drv);

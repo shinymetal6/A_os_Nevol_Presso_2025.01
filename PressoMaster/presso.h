@@ -55,22 +55,21 @@ typedef struct
 
 /* status */
 #define	DWIN_STATUS_OPERATIONAL		0x80
-#define	DWIN_STATUS_DISPLAY_OK		0x01
+#define	DWIN_STATUS_DISPLAY_OK		0x40
 /* state */
-#define	DWIN_STATE_RESET			0
-#define	DWIN_STATE_POWER_ON			1
-#define	DWIN_STATE_KBD				2
-#define	DWIN_STATE_BIOCRIO_PAGE		3
-#define	DWIN_STATE_COB_PAGE 		4
+
 
 /* usb_flags */
 #define	USB_FLAGS_HEADEROK		0x40
 #define	USB_FLAGS_PKTCOMPLETE	0x80
 
-#define	POWERUP_WAIT			20
+#define	POWERUP_WAIT			2
 
+#define	MACHINE_IS_CRIOCOB		1
+#ifdef	MACHINE_IS_CRIOCOB
 #define	BIOACTIVE_CRIO		1
 #define	COBROLL				2
+#endif
 
 #define	COMM_NORMAL_MODE	0
 #define	COMM_XMODEM_MODE	1

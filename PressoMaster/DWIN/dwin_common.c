@@ -24,7 +24,7 @@
 #include "../A_os_includes.h"
 #include "../presso.h"
 #include "../process_3_dwin_hmi.h"
-#include "dwin_state_machine.h"
+#include "dwin_criocob_state_machine.h"
 #include "dwin_common.h"
 
 DWIN_packet_t			DWIN_packet;
