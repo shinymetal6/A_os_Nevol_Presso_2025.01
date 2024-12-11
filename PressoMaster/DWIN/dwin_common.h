@@ -53,11 +53,14 @@ typedef struct
 extern	DWIN_packet_t	DWIN_packet;
 extern	NevolSystem_t	NevolSystem;
 
+extern	uint32_t verify_display_ready(uint32_t uart2_driver_handle);
 extern	uint32_t compile_and_send_7b_dwin_packet(uint32_t uart2_driver_handle,uint16_t address,uint32_t data);
-extern	uint32_t compile_and_send_5b_dwin_packet(uint32_t uart2_driver_handle,uint16_t address,uint8_t data0,uint8_t data1);
+extern	uint32_t compile_and_send_5b_dwin_packet(uint32_t uart2_driver_handle,uint16_t address,uint16_t data);
 extern	uint32_t password_manager(uint32_t uart2_driver_handle,uint8_t  *dwin_rx_packet,uint8_t  dwin_rx_packet_len);
 extern	uint16_t get_kbd_key(uint8_t  *dwin_rx_packet);
 extern	uint32_t check_std_reply(uint8_t  *dwin_rx_packet);
+extern	uint32_t check_ready_reply(uint8_t  *dwin_rx_packet);
+extern	uint32_t msg_to_sequencer(uint8_t code , uint8_t program_number);
 
 
 #endif /* PRESSOMASTER_DWIN_DWIN_COMMON_H_ */

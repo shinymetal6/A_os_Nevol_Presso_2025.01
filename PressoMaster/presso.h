@@ -26,6 +26,7 @@
 #define	PRESSO_SEQUENCER_PROCESS	2
 #define	PRESSO_SEQUENCER_MBX		0
 #define	PRESSO_COMM_MBX				1
+#define	PRESSO_HMI_MBX				3
 
 /*
 #define	xmodem_data_area	0x30010000
@@ -46,7 +47,6 @@ typedef struct
 	uint32_t			password_index;
 	uint8_t				dwin_rxpacket[6];
 	uint8_t				dwin_rxpacket_index;
-
 	uint8_t				command_from_host[32];
 	uint8_t				param_from_host;
 	uint8_t				usb_rx_buffer_index;
@@ -63,29 +63,26 @@ typedef struct
 #define	USB_FLAGS_HEADEROK		0x40
 #define	USB_FLAGS_PKTCOMPLETE	0x80
 
-#define	POWERUP_WAIT			2
 
-#define	MACHINE_IS_CRIOCOB		1
-#ifdef	MACHINE_IS_CRIOCOB
-#define	BIOACTIVE_CRIO		1
-#define	COBROLL				2
+#define	MACHINE_IS_BIOCRIOCOB	1
+#ifdef	MACHINE_IS_BIOCRIOCOB
+	#define	BIOACTIVE_CRIO			1
+	#define	COBROLL					2
+	#define	POWERUP_WAIT			2
+	#define	BIO_PASSWORD			11111
+	#define	COB_PASSWORD			22222
+	#define	SYSTEM_PASSWORD			55555
 #endif
 
-#define	COMM_NORMAL_MODE	0
-#define	COMM_XMODEM_MODE	1
+#define	COMM_NORMAL_MODE		0
+#define	COMM_XMODEM_MODE		1
 
-#define	USER_PASSWORD		12345
-#define	SYSTEM_PASSWORD		"654321"
 
-#define	CMDPARSER_RET_PRG	1
-#define	CMDPARSER_RET_WAV	2
-#define	CMDPARSER_RET_RUN	3
-#define	CMDPARSER_RET_HLT	4
+#define	XMODEM_TIMEOUT			5
 
-#define	XMODEM_TIMEOUT		5
+#define	PRESSO_PROGRAM_SIZE		4096
 
-#define	PRESSO_PROGRAM_SIZE	4096
-
+#include "process_1_comm_cmdparser.h"
 #include "process_2_sequencer.h"
 #include "process_2_sequencer_memparser.h"
 

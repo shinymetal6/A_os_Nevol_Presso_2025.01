@@ -23,13 +23,13 @@
 #include "main.h"
 #include "A_os_includes.h"
 #include "presso.h"
-#include "process_3_dwin_hmi.h"
-
+#include "process_1_comm_cmdparser.h"
 
  __attribute__ ((aligned (32)))	Presso_ee_TypeDef			Presso_ee;
  __attribute__ ((aligned (32)))	Presso_Sequencer_TypeDef	Presso_Sequencer;
 
-uint8_t			prc1_mbx_rxbuf[sizeof(uint32_t)];
+ uint8_t		prc1_mbx_rxbuf[sizeof(uint32_t)];
+ uint8_t		prc3_mbx_rxbuf[sizeof(uint32_t)];
 uint32_t		program_loaded = 0;
 
 void run_sequencer(void)
@@ -150,6 +150,31 @@ uint8_t		program_run_number;
 				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_HLT)
 				{
 					program_run_number = prc1_mbx_rxbuf[1];
+					if ( program_run_number < 16 )
+					{
+						Presso_Sequencer.state = SEQUENCER_STATE_IDLE;
+						halt_sequencer();
+					}
+				}
+			}
+			mbx_size = mbx_receive(PRESSO_HMI_MBX,prc3_mbx_rxbuf);
+			if ( mbx_size )
+			{
+				if ( prc3_mbx_rxbuf[0] == CMDPARSER_RET_RUN)
+				{
+					program_run_number = prc3_mbx_rxbuf[1];
+					if ( program_run_number < 16 )
+					{
+						if ( mem_load_program_by_number(program_run_number) == 0)
+						{
+							Presso_Sequencer.time = Presso_ee.program_time;
+							Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
+						}
+					}
+				}
+				if ( prc3_mbx_rxbuf[0] == CMDPARSER_RET_HLT)
+				{
+					program_run_number = prc3_mbx_rxbuf[1];
 					if ( program_run_number < 16 )
 					{
 						Presso_Sequencer.state = SEQUENCER_STATE_IDLE;

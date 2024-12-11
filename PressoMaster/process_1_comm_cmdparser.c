@@ -23,6 +23,7 @@
 #include "main.h"
 #include "A_os_includes.h"
 #include "presso.h"
+#include "process_1_comm_cmdparser.h"
 #include <ctype.h>
 
 extern 	NevolSystem_t	NevolSystem;

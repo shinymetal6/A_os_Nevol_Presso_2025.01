@@ -23,19 +23,18 @@
 #include "A_os_includes.h"
 #include "presso.h"
 #include "process_3_dwin_hmi.h"
-#include "DWIN/dwin_criocob_state_machine.h"
-#include "DWIN/dwin_common.h"
+#ifdef	MACHINE_IS_BIOCRIOCOB
+	#include "DWIN/dwin_criocob_state_machine.h"
+	#include "DWIN/dwin_common.h"
+#endif
 
 extern	NevolSystem_t	NevolSystem;
-extern	DWIN_packet_t			DWIN_packet;
-
 extern	UART_HandleTypeDef	huart2;
 
 #define	UART_RX_BUF_SIZE	64
 #define	UART_TX_BUF_SIZE	64
 uint8_t	uart2_rx_buffer[UART_RX_BUF_SIZE];
 uint8_t	uart2_tx_buffer[UART_TX_BUF_SIZE];
-
 
 UART_Drv_TypeDef Uart2_Drv =
 {
@@ -73,11 +72,8 @@ void led_process(void)
 void process_3_dwin_hmi(uint32_t process_id)
 {
 uint32_t	wakeup,flags;
-#ifdef	MACHINE_IS_CRIOCOB
-	NevolSystem.machine = COBROLL;
-#endif
-	NevolSystem.powerup_val = POWERUP_WAIT;
 
+	NevolSystem.powerup_val = POWERUP_WAIT;
 	uart2_driver_handle = uart_register(&Uart2_Drv);
 	uart_start_receive(uart2_driver_handle);
 
