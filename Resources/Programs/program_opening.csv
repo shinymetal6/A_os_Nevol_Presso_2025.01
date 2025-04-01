@@ -1,0 +1,15 @@
+/programtype = 0 -> single , programtype=1 -> loop 
+/linetype number_of_lines time pressure program_type programnumber program_has_opening program_has_closing program_repetition_number name
+S,10,1,50,1,0,0,0,0,OPENING
+/linetype linenumber h0time h1time h2time h3time h4time force_motor_on audionumber ioconfig
+L,1, 0,0,0,0,0,0,0,0001000100010000
+L,2, 0,0,0,0,0,0,0,0010001000100000
+L,3, 0,0,0,0,0,0,0,0000000000000000
+L,4, 0,0,0,0,0,0,0,0000000000000000
+L,5, 0,0,0,0,0,0,0,0000000000000000
+L,6, 0,0,0,0,0,0,0,0100010001000000
+L,7, 0,0,0,0,0,0,0,0000000000000000
+L,8, 0,0,0,0,0,0,0,1000100010000000
+L,9, 0,0,0,0,0,0,0,0000000000000000
+L,10,0,0,0,0,0,0,0,0000000000000000
+E

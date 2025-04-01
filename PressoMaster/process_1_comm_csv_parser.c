@@ -23,43 +23,20 @@
 #include "main.h"
 #include "A_os_includes.h"
 #include "presso.h"
-#include "process_1_comm_csv_parser.h"
-#include "process_2_sequencer.h"
-#include "process_2_sequencer_memparser.h"
 
-int pnum;
-char line_type;
-int time;
-char program_name[EE_PROG_NAME_SIZE];
-char program_type[8];
-int number_of_lines;
-
-int line_number;
-int tim1_w;
-int tim2_w;
-int tim3_w;
-int tim4_w;
-int tim5_w;
-int motor;
-
+int		pnum,program_type,program_number,program_has_opening,program_has_closing,program_repetition_number;
+char	program_name[EE_PROG_NAME_SIZE];
 char	outconfig[32];
-char	csv_ee_line[64];
+int		nline,ptime,press;
+int		heater_values[5],line_number,audionumber,force_motor_on;
 
-static uint32_t find_csv_cr_subst(uint8_t *data_ptr)
+static uint32_t find_csv_cr(uint8_t *data_ptr)
 {
 uint32_t i;
 	for(i=0;i<1024;i++)
 	{
 		if ( data_ptr[i] == '\n' )
-		{
-			csv_ee_line[i] = 0;
 			return i+1;
-		}
-		else if ( data_ptr[i] == ',' )
-			csv_ee_line[i] = ' ';
-		else
-			csv_ee_line[i] = data_ptr[i];
-
 	}
 	return 0;
 }
@@ -82,29 +59,48 @@ uint32_t decode_csv(uint8_t *data_ptr,uint32_t data_len)
 uint32_t cr_index = 0;
 uint32_t char_processed = 0;
 uint32_t line_index = 0;
+Presso_ee_TypeDef	*pstruct;
 
-	bzero((uint8_t *)&Presso_ee,sizeof(Presso_ee_TypeDef));
+	if ( NevolSystem.param_from_host == 0 )
+		pstruct = &Presso_opening_ee;
+	else if ( NevolSystem.param_from_host == 31 )
+		pstruct = &Presso_closing_ee;
+	else
+		pstruct = &Presso_ee;
+	bzero((uint8_t *)pstruct,sizeof(Presso_ee_TypeDef));
 	char_processed = 0;
 	while(1)
 	{
 		switch(*data_ptr)
 		{
 		case 'S' :
-			cr_index = find_csv_cr_subst(data_ptr);
+			cr_index = find_csv_cr(data_ptr);
 			if ( cr_index == 0 )
 				return 0;
-			pnum = sscanf((char *)csv_ee_line,"%c %s %d %d %s",
-					&line_type,
-					program_name,
-					(int *)&Presso_ee.program_number_of_lines,
-					(int *)&Presso_ee.program_time,
-					program_type);
-			if ( pnum == 5 )
+			pnum = sscanf((char *)data_ptr,"S,%d,%d,%d,%d,%d,%d,%d,%d,%s",
+					&nline,
+					&ptime,
+					&press,
+					&program_type,
+					&program_number,
+					&program_has_opening,
+					&program_has_closing,
+					&program_repetition_number,
+					program_name
+					);
+			if ( pnum == 9 )
 			{
-				if ( strcmp(program_type,"LOOP") == 0 )
-					Presso_ee.program_valid_flag = EE_PROG_VALID_LOOP_FLAG;
-				else if ( strcmp(program_type,"SINGLE") == 0 )
-					Presso_ee.program_valid_flag = EE_PROG_VALID_SINGLE_FLAG;
+				pstruct->program_number_of_lines = nline;
+				pstruct->program_time = ptime;
+				pstruct->program_pressure = press;
+				pstruct->program_number = program_number;
+				pstruct->program_has_opening = program_has_opening;
+				pstruct->program_has_closing = program_has_closing;
+				pstruct->program_repetition_number = program_repetition_number;
+				if ( program_type == 1 )
+					pstruct->program_valid_flag = EE_PROG_VALID_LOOP_FLAG;
+				else if ( program_type == 0 )
+					pstruct->program_valid_flag = EE_PROG_VALID_SINGLE_FLAG;
 				else
 					return 0;
 				if ( char_processed > sizeof(Presso_ee_TypeDef))
@@ -116,22 +112,33 @@ uint32_t line_index = 0;
 				return 0;
 			break;
 		case 'L' :
-			cr_index = find_csv_cr_subst(data_ptr);
+			cr_index = find_csv_cr(data_ptr);
 			if ( cr_index == 0 )
 				return 0;
-			pnum = sscanf(&csv_ee_line[2],"%d %d %d %d %d %d %d %s",
-					(int *)&Presso_ee.Presso_ee_line[line_index].line_number,
-					(int *)&Presso_ee.Presso_ee_line[line_index].heater_values[0],
-					(int *)&Presso_ee.Presso_ee_line[line_index].heater_values[1],
-					(int *)&Presso_ee.Presso_ee_line[line_index].heater_values[2],
-					(int *)&Presso_ee.Presso_ee_line[line_index].heater_values[3],
-					(int *)&Presso_ee.Presso_ee_line[line_index].heater_values[4],
-					(int *)&Presso_ee.Presso_ee_line[line_index].motor,
+
+			pnum = sscanf((char *)data_ptr,"L,%d,%d,%d,%d,%d,%d,%d,%d,%s",
+					&line_number,
+					&heater_values[0],
+					&heater_values[1],
+					&heater_values[2],
+					&heater_values[3],
+					&heater_values[4],
+					&force_motor_on,
+					&audionumber,
 					outconfig
 					);
-			if ( pnum == 8 )
+			if ( pnum == 9 )
 			{
-				Presso_ee.Presso_ee_line[line_index].gpio = convert_gpio();
+				pstruct->Presso_ee_line[line_index].line_number = line_number;
+				pstruct->Presso_ee_line[line_index].heater_values[0] = heater_values[0];
+				pstruct->Presso_ee_line[line_index].heater_values[1] = heater_values[1];
+				pstruct->Presso_ee_line[line_index].heater_values[2] = heater_values[2];
+				pstruct->Presso_ee_line[line_index].heater_values[3] = heater_values[3];
+				pstruct->Presso_ee_line[line_index].heater_values[4] = heater_values[4];
+				pstruct->Presso_ee_line[line_index].force_motor_on = force_motor_on;
+				pstruct->Presso_ee_line[line_index].audionumber = audionumber;
+				pstruct->Presso_ee_line[line_index].gpio = convert_gpio();
+
 				char_processed +=cr_index;
 				if ( char_processed > sizeof(Presso_ee_TypeDef))
 					return 0;
@@ -142,11 +149,17 @@ uint32_t line_index = 0;
 				return 0;
 			break;
 		case 'E' :
-			cr_index = find_csv_cr_subst(data_ptr);
+			cr_index = find_csv_cr(data_ptr);
 			if ( cr_index == 0 )
 				return 0;
 			char_processed +=cr_index;
 			return char_processed;
+			break;
+		case '/' :
+			cr_index = find_csv_cr(data_ptr);
+			if ( cr_index == 0 )
+				return 0;
+			data_ptr += cr_index;
 			break;
 		default:
 			return 0;
@@ -154,4 +167,3 @@ uint32_t line_index = 0;
 	}
 	return 0;
 }
-

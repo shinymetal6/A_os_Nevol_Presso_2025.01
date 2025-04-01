@@ -23,8 +23,6 @@
 #include "main.h"
 #include "A_os_includes.h"
 #include "presso.h"
-#include "process_1_comm_csv_parser.h"
-#include "process_1_comm_cmdparser.h"
 
 NevolSystem_t	NevolSystem;
 
@@ -57,20 +55,32 @@ uint8_t		mbx_data[2];
 void ee_write(uint32_t data_len)
 {
 uint32_t	flash_address;
+Presso_ee_TypeDef	*pstruct;
 
-	flash_address = (NevolSystem.param_from_host-1) * sizeof(Presso_ee_TypeDef);
+	if ( NevolSystem.param_from_host == 0 )
+		pstruct = &Presso_opening_ee;
+	else if ( NevolSystem.param_from_host == (PRESSO_MAX_PROGRAMS-1) )
+		pstruct = &Presso_closing_ee;
+	else
+		pstruct = &Presso_ee;
+	flash_address = NevolSystem.param_from_host * sizeof(Presso_ee_TypeDef);
 	if ( flash_address <= i2c_24xx_Drv.device_size - sizeof(Presso_ee_TypeDef))
-		if ( extflash_write(i2cflash_driver_handle, flash_address,(uint8_t *)&Presso_ee,data_len) )
-			presso_flash_error++;
+	{
+			if ( i2c_extflash_write(i2cflash_driver_handle, flash_address,(uint8_t *)pstruct,data_len) )
+				presso_flash_error++;
+	}
 }
+
 
 void process_1_comm(uint32_t process_id)
 {
 uint32_t	wakeup,flags;
 uint32_t	ndecoded;
+uint32_t	file_type;	// 0 for csv , 1 for wav, defaults to csv
 
 	xmodem_usb_enable_poll = 0;
-	xmodem_init((uint8_t *)xmodem_data_area,xmodem_data_len);
+	file_type = TRANSFER_XMODEM_CSV;
+	xmodem_rx_init((uint8_t *)xmodem_data_area,xmodem_data_len);
 	usb_driver_handle = usb_device_driver_register(&USB_Drv);
 
 	create_timer(TIMER_ID_0,1000,TIMERFLAGS_FOREVER | TIMERFLAGS_ENABLED);
@@ -85,7 +95,7 @@ uint32_t	ndecoded;
 			{
 				if ( xmodem_usb_enable_poll == 1 )
 				{
-					xmodem_set_data_area((uint8_t *)xmodem_data_area,xmodem_data_len );
+					xmodem_rx_set_data_area((uint8_t *)xmodem_data_area,xmodem_data_len );
 					usb_send(usb_driver_handle,&nak,1);
 				}
 				xmodem_timeout--;
@@ -103,15 +113,29 @@ uint32_t	ndecoded;
 				xmodem_usb_enable_poll = 0;
 				xmodem_timeout = XMODEM_TIMEOUT;
 				usb_buf_len = usb_get_rx_len(usb_driver_handle);
-				xmodem_usb_reply = xmodem_line_parser(usb_rx_buffer);
+				xmodem_usb_reply = xmodem_rx_line_parser(usb_rx_buffer);
 				switch(xmodem_usb_reply)
 				{
 				case	X_EOT:
-					ndecoded = decode_csv((uint8_t *)xmodem_data_area,xmodem_get_rxed_amount());
-					if ( ndecoded )
-						ee_write(ndecoded);
-
-					usb_send(usb_driver_handle,&ack,1);
+					if ( file_type == TRANSFER_XMODEM_CSV)
+					{
+						ndecoded = decode_csv((uint8_t *)xmodem_data_area,xmodem_rx_get_rxed_amount());
+						if ( ndecoded )
+						{
+							ee_write(ndecoded);
+							usb_send(usb_driver_handle,&ack,1);
+						}
+						else
+							usb_send(usb_driver_handle,&nak,1);
+					}
+					if ( file_type == TRANSFER_XMODEM_WAV)
+					{
+						ndecoded = xmodem_rx_get_rxed_amount();
+						if ( wav_flash_to_bank2((uint8_t *)xmodem_data_area,ndecoded,NevolSystem.param_from_host-1) == 0 )
+							usb_send(usb_driver_handle,&ack,1);
+						else
+							usb_send(usb_driver_handle,&nak,1);
+					}
 					comm_state = COMM_NORMAL_MODE;
 					USB_Drv.data_index = 0;
 					break;
@@ -133,11 +157,30 @@ uint32_t	ndecoded;
 					switch(parsed_cmd)
 					{
 					case CMDPARSER_RET_PRG:
+						file_type = TRANSFER_XMODEM_CSV;
+						comm_state = COMM_XMODEM_MODE;
+						xmodem_usb_enable_poll = 1;
+						break;
+					case CMDPARSER_RET_WAV:
+						file_type = TRANSFER_XMODEM_WAV;
 						comm_state = COMM_XMODEM_MODE;
 						xmodem_usb_enable_poll = 1;
 						break;
 					case CMDPARSER_RET_RUN:
 					case CMDPARSER_RET_HLT:
+					case CMDPARSER_RET_PLAY:
+					case CMDPARSER_RET_MUTE:
+					case CMDPARSER_PLAY_SOUND:
+						mbx_data[0] = parsed_cmd;
+						mbx_data[1] = NevolSystem.param_from_host;
+						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,mbx_data,2);
+						break;
+					case CMDPARSER_TEST_MOTOR:
+						mbx_data[0] = parsed_cmd;
+						mbx_data[1] = NevolSystem.param_from_host;
+						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,mbx_data,2);
+						break;
+					case CMDPARSER_TEST_OPEN:
 						mbx_data[0] = parsed_cmd;
 						mbx_data[1] = NevolSystem.param_from_host;
 						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,mbx_data,2);

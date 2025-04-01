@@ -72,6 +72,7 @@ DAC_Drv_TypeDef	dac_Drv =
 		.channel = DAC_CHANNEL_1,
 		.dac_buffer = out_buffer,
 		.len = NUMBER_OF_AUDIO_SAMPLES,
+		//.alignment = DAC_ALIGN_12B_L,
 		.flags = DAC_FLAGS_USE_AUDIOMODULE,
 };
 uint32_t		dac_driver_handle;
@@ -223,17 +224,11 @@ uint32_t	i;
 
 	i2cflash_driver_handle = i2c_24xx_register(&i2c_24xx_Drv);
 
-	adc_driver_handle = int_adc_register(&adc_Drv,0);
-	adc_init(adc_driver_handle);
-	adc_start(adc_driver_handle);
-
-
-
-	tim2_3_driver_handle = pwm_register(&Pwm2_3_Control,0);
-	tim3_1_driver_handle = pwm_register(&Pwm3_1_Control,0);
-	tim3_2_driver_handle = pwm_register(&Pwm3_2_Control,0);
-	tim3_3_driver_handle = pwm_register(&Pwm3_3_Control,0);
-	tim3_4_driver_handle = pwm_register(&Pwm3_4_Control,0);
+	tim2_3_driver_handle = pwm_register(&Pwm2_3_Control);
+	tim3_1_driver_handle = pwm_register(&Pwm3_1_Control);
+	tim3_2_driver_handle = pwm_register(&Pwm3_2_Control);
+	tim3_3_driver_handle = pwm_register(&Pwm3_3_Control);
+	tim3_4_driver_handle = pwm_register(&Pwm3_4_Control);
 
 	pwm_start(tim2_3_driver_handle);
 	pwm_start(tim3_1_driver_handle);
@@ -241,8 +236,10 @@ uint32_t	i;
 	pwm_start(tim3_3_driver_handle);
 	pwm_start(tim3_4_driver_handle);
 
+	adc_driver_handle = int_adc_register(&adc_Drv);
+	adc_start(adc_driver_handle);
 
-	dac_driver_handle = int_dac_register(&dac_Drv,0);
+	dac_driver_handle = int_dac_register(&dac_Drv);
 	dac_init(dac_driver_handle);
 
 	InitOscillators();
@@ -280,4 +277,12 @@ void process_2_sequencer_set_motor(uint8_t motor)
 		HAL_GPIO_WritePin(MOTOR_ON_GPIO_Port, MOTOR_ON_Pin, GPIO_PIN_SET);
 	else
 		HAL_GPIO_WritePin(MOTOR_ON_GPIO_Port, MOTOR_ON_Pin, GPIO_PIN_RESET);
+}
+
+void process_2_sequencer_set_test_gpio(uint8_t level)
+{
+	if ( level )
+		HAL_GPIO_WritePin(Presso_GPIO[0].port, Presso_GPIO[0].bit, GPIO_PIN_SET);
+	else
+		HAL_GPIO_WritePin(Presso_GPIO[0].port, Presso_GPIO[0].bit, GPIO_PIN_RESET);
 }

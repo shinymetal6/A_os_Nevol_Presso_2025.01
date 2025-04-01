@@ -14,26 +14,16 @@
  * Project : A_os
 */
 /*
- * process_1_comm_cmdparser.h
+ * process_1_comm_wav_parser.h
  *
- *  Created on: Dec 5, 2024
+ *  Created on: Jan 16, 2025
  *      Author: fil
  */
-#ifndef PRESSOMASTER_PROCESS_1_COMM_CMDPARSER_H_
-#define PRESSOMASTER_PROCESS_1_COMM_CMDPARSER_H_
+#ifndef PRESSOMASTER_PROCESS_1_COMM_WAV_PARSER_H_
+#define PRESSOMASTER_PROCESS_1_COMM_WAV_PARSER_H_
 
+#define	WAV_MAX_SIZE	65536
 
-#define	CMDPARSER_RET_PRG		1
-#define	CMDPARSER_RET_WAV		2
-#define	CMDPARSER_RET_RUN		3
-#define	CMDPARSER_RET_HLT		4
-#define	CMDPARSER_RET_PLAY		5
-#define	CMDPARSER_RET_MUTE		6
-#define	CMDPARSER_PLAY_SOUND	7
-#define	CMDPARSER_TEST_MOTOR	8
-#define	CMDPARSER_TEST_OPEN		9
+extern	uint32_t wav_flash_to_bank2(uint8_t *wav_ptr,uint32_t wav_file_len , uint32_t offset);
 
-extern	uint8_t Host_pack_USB_packet(uint8_t *usb_rx_buffer,uint8_t len);
-extern	uint8_t parse_packet(uint8_t *rx_buf);
-
-#endif /* PRESSOMASTER_PROCESS_1_COMM_CMDPARSER_H_ */
+#endif /* PRESSOMASTER_PROCESS_1_COMM_WAV_PARSER_H_ */

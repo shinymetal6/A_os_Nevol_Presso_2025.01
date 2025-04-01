@@ -37,11 +37,17 @@ typedef struct
 	uint8_t				state;
 	uint16_t			sequence;
 	uint16_t			time;
+	uint8_t				repetition_number;
 }Presso_Sequencer_TypeDef;
 /*state*/
 #define	SEQUENCER_STATE_IDLE		0
-#define	SEQUENCER_STATE_RUNNING		1
-#define	SEQUENCER_STATE_FINISHED	2
+#define	SEQUENCER_STATE_OPENING		1
+#define	SEQUENCER_STATE_RUNNING		2
+#define	SEQUENCER_STATE_CLOSING		3
+#define	SEQUENCER_STATE_FINISHED	4
+
+#define	PROCESS_SCHEDULE_TIME	100
+#define	SEQUENCER_TICK_TIME		(1000 / PROCESS_SCHEDULE_TIME)
 
 extern	I2C_24xx_Drv_TypeDef	i2c_24xx_Drv;
 extern	Pwm_Control_TypeDef		Pwm2_Control;
@@ -60,5 +66,7 @@ extern	void process_2_sequencer_init(void);
 extern	void process_2_sequencer_set_gpio(uint16_t outconfig);
 extern	void process_2_sequencer_set_timers(uint32_t ht1,uint32_t ht2,uint32_t ht3,uint32_t ht4,uint32_t ht5);
 extern	void process_2_sequencer_set_motor(uint8_t motor);
+extern	void process_2_sequencer_set_test_gpio(uint8_t level);
+
 
 #endif /* PROCESS_2_SEQUENCER_H_ */

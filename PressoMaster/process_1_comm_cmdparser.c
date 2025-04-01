@@ -83,6 +83,16 @@ uint16_t	pnum;
 			return CMDPARSER_RET_RUN;
 		if ( strcmp((char *)NevolSystem.command_from_host,"HLT") == 0 )
 			return CMDPARSER_RET_HLT;
+		if ( strcmp((char *)NevolSystem.command_from_host,"PLY") == 0 )
+			return CMDPARSER_RET_PLAY;
+		if ( strcmp((char *)NevolSystem.command_from_host,"MUT") == 0 )
+			return CMDPARSER_RET_MUTE;
+		if ( strcmp((char *)NevolSystem.command_from_host,"SND") == 0 )
+			return CMDPARSER_PLAY_SOUND;
+		if ( strcmp((char *)NevolSystem.command_from_host,"TMT") == 0 )
+			return CMDPARSER_TEST_MOTOR;
+		if ( strcmp((char *)NevolSystem.command_from_host,"TOP") == 0 )
+			return CMDPARSER_TEST_OPEN;
 	}
 	return 0;
 }

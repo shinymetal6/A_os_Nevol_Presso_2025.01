@@ -25,6 +25,4 @@
 
 extern	uint32_t decode_csv(uint8_t *data_ptr,uint32_t data_len);
 
-
-
 #endif /* PROCESS_1_COMM_CSV_PARSER_H_ */
