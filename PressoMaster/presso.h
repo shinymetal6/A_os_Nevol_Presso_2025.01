@@ -63,17 +63,6 @@ typedef struct
 #define	USB_FLAGS_HEADEROK		0x40
 #define	USB_FLAGS_PKTCOMPLETE	0x80
 
-
-#define	MACHINE_IS_BIOCRIOCOB	1
-#ifdef	MACHINE_IS_BIOCRIOCOB
-	#define	BIOACTIVE_CRIO			1
-	#define	COBROLL					2
-	#define	POWERUP_WAIT			2
-	#define	BIO_PASSWORD			11111
-	#define	COB_PASSWORD			22222
-	#define	SYSTEM_PASSWORD			55555
-#endif
-
 #define	COMM_NORMAL_MODE		0
 #define	COMM_XMODEM_MODE		1
 
@@ -94,6 +83,8 @@ typedef struct
 #include "process_1_comm_wav_parser.h"
 #include "process_2_sequencer.h"
 #include "process_2_sequencer_memparser.h"
+#include "process_2_sequencer_audio.h"
+#include "process_2_sequencer_pressure.h"
 
 extern	NevolSystem_t				NevolSystem;
 extern	Presso_ee_TypeDef			Presso_ee;

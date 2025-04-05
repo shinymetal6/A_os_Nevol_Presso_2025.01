@@ -221,6 +221,8 @@ QString cmd;
     serial.flush();
     if ( ui->ProgramNumber_comboBox->currentText() == "Opening")
         cmd = "< PRG 0 >";
+    else if ( ui->ProgramNumber_comboBox->currentText() == "Diag")
+        cmd = "< PRG 30 >";
     else if ( ui->ProgramNumber_comboBox->currentText() == "Closing")
         cmd = "< PRG 31 >";
     else
@@ -238,6 +240,8 @@ QString cmd;
         serial.flush();
         if ( ui->RunProgramNumber_comboBox->currentText() == "Opening")
             cmd = "< HLT 0 >";
+        else if ( ui->RunProgramNumber_comboBox->currentText() == "Diag")
+            cmd = "< HLT 30 >";
         else if ( ui->RunProgramNumber_comboBox->currentText() == "Closing")
             cmd = "< HLT 31 >";
         else
@@ -249,11 +253,13 @@ QString cmd;
     {
         serial.flush();
         if ( ui->RunProgramNumber_comboBox->currentText() == "Opening")
-            cmd = "< RUN 0 >";
+            cmd = "< LOR 0 >";
+        if ( ui->RunProgramNumber_comboBox->currentText() == "Diag")
+            cmd = "< LOR 30 >";
         if ( ui->RunProgramNumber_comboBox->currentText() == "Closing")
-            cmd = "< RUN 31 >";
+            cmd = "< LOR 31 >";
         else
-            cmd = "< RUN "+ui->RunProgramNumber_comboBox->currentText()+" >";
+            cmd = "< LOR "+ui->RunProgramNumber_comboBox->currentText()+" >";
 
         serial_tx(cmd.toUtf8());
         ui->Run_pushButton->setText("HALT");

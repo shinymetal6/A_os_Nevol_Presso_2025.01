@@ -46,6 +46,29 @@ typedef struct
 #define	SEQUENCER_STATE_CLOSING		3
 #define	SEQUENCER_STATE_FINISHED	4
 
+typedef struct
+{
+	uint8_t				flags;
+	uint16_t			midi_note;
+	uint16_t			time;
+}Presso_sound_TypeDef;
+
+#define	MIDI_NOTE_MUTE_FLAG	0x00
+
+#define	MIDI_NOTE_ON_FLAG	0x01
+#define	MIDI_NOTE_OFF_FLAG	0x02
+
+typedef struct
+{
+	uint8_t					state;
+	uint8_t					beep_index;
+	uint8_t					beep_time;
+	Presso_sound_TypeDef	*sound;
+}Presso_soundseq_TypeDef;
+
+#define	SOUND_SEQ_STARTED	0x80
+#define	SOUND_SEQ_IDLE		0x00
+
 #define	PROCESS_SCHEDULE_TIME	100
 #define	SEQUENCER_TICK_TIME		(1000 / PROCESS_SCHEDULE_TIME)
 
@@ -67,6 +90,9 @@ extern	void process_2_sequencer_set_gpio(uint16_t outconfig);
 extern	void process_2_sequencer_set_timers(uint32_t ht1,uint32_t ht2,uint32_t ht3,uint32_t ht4,uint32_t ht5);
 extern	void process_2_sequencer_set_motor(uint8_t motor);
 extern	void process_2_sequencer_set_test_gpio(uint8_t level);
+extern	uint8_t load_program_and_execute(uint8_t program_number);
+extern	uint8_t load_program(uint8_t program_number);
+extern	uint8_t halt_program(uint8_t program_number);
 
 
 #endif /* PROCESS_2_SEQUENCER_H_ */

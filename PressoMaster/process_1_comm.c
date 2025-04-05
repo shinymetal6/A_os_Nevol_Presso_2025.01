@@ -166,7 +166,9 @@ uint32_t	file_type;	// 0 for csv , 1 for wav, defaults to csv
 						comm_state = COMM_XMODEM_MODE;
 						xmodem_usb_enable_poll = 1;
 						break;
-					case CMDPARSER_RET_RUN:
+					case CMDPARSER_RET_LOADRUN:
+					case CMDPARSER_RET_LOAD:
+					case CMDPARSER_RET_EXEC:
 					case CMDPARSER_RET_HLT:
 					case CMDPARSER_RET_PLAY:
 					case CMDPARSER_RET_MUTE:

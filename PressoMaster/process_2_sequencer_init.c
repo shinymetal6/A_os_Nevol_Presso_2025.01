@@ -50,13 +50,19 @@ extern	ADC_HandleTypeDef hadc1;
 extern	TIM_HandleTypeDef htim6;
 
 uint16_t	adcBuf[4];
+/*
+ * 0.5  = 	1733
+ *
+ */
 
 ADC_Drv_TypeDef	adc_Drv =
 {
 		.adc = &hadc1,
 		.adc_timer = &htim6,
 		.adc_buffer = adcBuf,
-		.num_channels = 1,
+		.num_channels = 3,
+		.wakeup_id = EVENT_ADC1_IRQ,
+		.flags = ADC_FLAGS_ALL_WAKEUP,
 };
 uint32_t		adc_driver_handle;
 
@@ -84,7 +90,6 @@ Pwm_Control_TypeDef	Pwm2_3_Control =
 {
 		.pwm_timer = &htim2,
 		.pwm_channel = TIM_CHANNEL_3,
-
 };
 uint32_t		tim2_3_driver_handle;
 
@@ -213,6 +218,13 @@ NOISE_Gen_TypeDef	NOISE_Gen =
 		.flags = EFFECT_ENABLED | NOISE_ADD,
 		.noise_weight = 0.01F,
 };
+
+REVERB_Effect_TypeDef Reverb_Effect =
+{
+		.flags = EFFECT_ENABLED,
+		.decayTime = 0.5F,
+		.mix = 0.3F,
+};
 void process_2_sequencer_init(void)
 {
 uint32_t	i;
@@ -243,9 +255,10 @@ uint32_t	i;
 	dac_init(dac_driver_handle);
 
 	InitOscillators();
-	effect_insert(Do_Dummy,(uint32_t *)&DUMMY_Effect1,dac_Drv.dac_buffer);
+	effect_insert(Do_Dummy,NULL,(uint32_t *)&DUMMY_Effect1,dac_Drv.dac_buffer);
 	//effect_insert(Do_Noise,(uint32_t *)&NOISE_Gen,dac_Drv.dac_buffer);
-	effect_insert(Do_Vca,(uint32_t *)&VCA_Effect1,dac_Drv.dac_buffer);
+	effect_insert(Do_Vca,NULL,(uint32_t *)&VCA_Effect1,dac_Drv.dac_buffer);
+	effect_insert(Do_Reverb,Set_Params_Reverb,(uint32_t *)&Reverb_Effect,dac_Drv.dac_buffer);
 
 	dac_start(dac_driver_handle);
 }

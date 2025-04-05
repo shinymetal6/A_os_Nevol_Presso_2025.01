@@ -23,31 +23,28 @@
 #include "A_os_includes.h"
 #include "presso.h"
 #include "process_3_dwin_hmi.h"
-#ifdef	MACHINE_IS_BIOCRIOCOB
-	#include "DWIN/dwin_criocob_state_machine.h"
-	#include "DWIN/dwin_common.h"
-#endif
+#include "DWIN/dwin_common.h"
 
 extern	NevolSystem_t	NevolSystem;
-extern	UART_HandleTypeDef	huart2;
+extern	UART_HandleTypeDef	huart1;
 
 #define	UART_RX_BUF_SIZE	64
 #define	UART_TX_BUF_SIZE	64
-uint8_t	uart2_rx_buffer[UART_RX_BUF_SIZE];
-uint8_t	uart2_tx_buffer[UART_TX_BUF_SIZE];
+uint8_t	uart1_rx_buffer[UART_RX_BUF_SIZE];
+uint8_t	uart1_tx_buffer[UART_TX_BUF_SIZE];
 
-UART_Drv_TypeDef Uart2_Drv =
+UART_Drv_TypeDef Uart1_Drv =
 {
-	.data = uart2_rx_buffer,
+	.data = uart1_rx_buffer,
 	.rx_max_len = UART_RX_BUF_SIZE,
-	.uart = &huart2,
-	.wakeup_id = WAKEUP_FROM_UART2_IRQ,
+	.uart = &huart1,
+	.wakeup_id = WAKEUP_FROM_UART1_IRQ,
 	.timeout = 50,
 	.flags = UART_USES_DMA_TX | UART_USES_DMA_RX | UART_WAKEUP_ON_RXFULL | UART_WAKEUP_ON_TIMEOUT,
 };
 
-uint32_t	uart2_driver_handle;
-uint32_t	uart2_rxcntr=0;
+uint32_t	uart1_driver_handle;
+uint32_t	uart1_rxcntr=0;
 
 uint8_t led_cntr=0;
 void led_process(void)
@@ -73,28 +70,27 @@ void process_3_dwin_hmi(uint32_t process_id)
 {
 uint32_t	wakeup,flags;
 
-	NevolSystem.powerup_val = POWERUP_WAIT;
-	uart2_driver_handle = uart_register(&Uart2_Drv);
-	uart_start_receive(uart2_driver_handle);
+	uart1_driver_handle = uart_register(&Uart1_Drv);
+	uart_start_receive(uart1_driver_handle);
 
 	create_timer(TIMER_ID_0,100,TIMERFLAGS_FOREVER | TIMERFLAGS_ENABLED);
-	bzero(uart2_rx_buffer,UART_RX_BUF_SIZE);
+	bzero(uart1_rx_buffer,UART_RX_BUF_SIZE);
 	while(1)
 	{
-		wait_event(EVENT_TIMER | Uart2_Drv.wakeup_id);
+		wait_event(EVENT_TIMER | Uart1_Drv.wakeup_id);
 		get_wakeup_flags(&wakeup,&flags);
 
 		if (( wakeup & WAKEUP_FROM_TIMER) == WAKEUP_FROM_TIMER)
 		{
 			led_process();
-			dwin_state_machine(uart2_driver_handle);
+			dwin_state_machine(uart1_driver_handle);
 		}
-		if (( wakeup & Uart2_Drv.wakeup_id) == Uart2_Drv.wakeup_id)
+		if (( wakeup & Uart1_Drv.wakeup_id) == Uart1_Drv.wakeup_id)
 		{
 			if (( flags & WAKEUP_FLAGS_UART_RX) == WAKEUP_FLAGS_UART_RX )
 			{
-				process_from_dwin(uart2_driver_handle,uart2_rx_buffer,uart_get_rxlen(uart2_driver_handle));
-				bzero(uart2_rx_buffer,UART_RX_BUF_SIZE);
+				process_from_dwin(uart1_driver_handle,uart1_rx_buffer,uart_get_rxlen(uart1_driver_handle));
+				bzero(uart1_rx_buffer,UART_RX_BUF_SIZE);
 			}
 		}
 	}
