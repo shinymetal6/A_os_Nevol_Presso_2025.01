@@ -25,160 +25,70 @@
 #include "dwin_common.h"
 #include "dwin_state_machine.h"
 
-DWIN_menus_t	DWIN_menus[] =
-{
-		{
-				0x70,
-				1,
-		},
-		{
-				0x71,
-				2,
-		},
-		{
-				0x72,
-				3,
-		},
-		{
-				0x73,
-				4,
-		},
-		{
-				0x74,
-				5,
-		},
-		{
-				0,
-				0,
-		},
-};
+uint8_t		loaded_program = 0;
+uint8_t		running = 0;
+uint8_t		pause = 0;
+uint8_t		dwin_value = 0;
 
-DWIN_values_t	DWIN_time_values[] =
-{
-	{
-		0x60,0,
-	},
-	{
-		0x61,0,
-	},
-	{
-		0x62,0,
-	},
-	{
-		0x63,0,
-	},
-	{
-		0x64,0,
-	},
-	{
-		0x65,0,
-	},
-	{
-		0x66,0,
-	},
-	{
-		0x67,0,
-	},
-	{
-		0,0,
-	},
-};
+extern	uint8_t	hmi_to_seq_mbx[sizeof(uint32_t)];
 
-DWIN_values_t	DWIN_pressure_values[] =
+uint32_t dwin_state_machine_reset (void)
 {
-	{
-		0x50,0,
-	},
-	{
-		0x51,0,
-	},
-	{
-		0x52,0,
-	},
-	{
-		0x53,0,
-	},
-	{
-		0x54,0,
-	},
-	{
-		0x55,0,
-	},
-	{
-		0x56,0,
-	},
-	{
-		0x57,0,
-	},
-	{
-		0,0,
-	},
-};
-
-uint32_t dwin_state_machine (uint32_t	uart_driver_handle)
-{
+	running = 0;
+	pause = 0;
 	return 0;
 }
 
-uint8_t		prc3_mbx_data[2];
-uint8_t		loaded_program = 0;
-uint8_t		dwin_value = 0;
-
 uint32_t process_from_dwin(uint32_t uart_driver_handle,uint8_t *uart1_rx_buffer,uint32_t uart_rxlen)
 {
-uint32_t	i=0;
-	while(DWIN_menus[i].char_id )
+	switch(uart1_rx_buffer[4] & DWIN_CMDS_MASK)
 	{
-		if ( uart1_rx_buffer[4] == DWIN_menus[i].char_id)
-		{
-			prc3_mbx_data[0] = CMDPARSER_RET_LOAD;
-			prc3_mbx_data[1] = loaded_program = DWIN_menus[i].ee_program;
-			mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,prc3_mbx_data,2);
-			return 0;
-		}
-		i++;
-	}
-
-	i = 0;
-	while(DWIN_time_values[i].index )
-	{
-		if ( uart1_rx_buffer[4] == DWIN_time_values[i].index)
-		{
-			DWIN_time_values[i].value = uart1_rx_buffer[8];
-			return 0;
-		}
-		i++;
-	}
-
-	i = 0;
-	while(DWIN_pressure_values[i].index )
-	{
-		if ( uart1_rx_buffer[4] == DWIN_pressure_values[i].index)
-		{
-			DWIN_pressure_values[i].value = uart1_rx_buffer[8];
-			compile_and_send_7b_dwin_packet(uart_driver_handle,0x2000 + DWIN_pressure_values[i].index,0x55);
-			return 0;
-		}
-		i++;
-	}
-
-	switch(uart1_rx_buffer[4])
-	{
-	case	DWIN_PROG_PLAY:
+	case DWIN_PROG_CMD_HB :
 		if ( loaded_program )
 		{
-			prc3_mbx_data[0] = CMDPARSER_RET_EXEC;
-			prc3_mbx_data[1] = loaded_program;
-			mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,prc3_mbx_data,2);
+			if ( uart1_rx_buffer[4] == DWIN_PROG_PLAY)
+			{
+				if ( running == 0 )
+				{
+					compile_and_send_5b_dwin_packet(uart_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PAUSE);
+					hmi_to_seq_mbx[0] = CMDPARSER_RET_RUN;
+					running = 1;
+				}
+				else
+				{
+					if ( pause == 0 )
+					{
+						hmi_to_seq_mbx[0] = CMDPARSER_RET_PAUSE;
+						compile_and_send_5b_dwin_packet(uart_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
+						pause = 1;
+					}
+					else
+					{
+						hmi_to_seq_mbx[0] = CMDPARSER_RET_UNPAUSE;
+						compile_and_send_5b_dwin_packet(uart_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PAUSE);
+						pause = 0;
+					}
+				}
+				hmi_to_seq_mbx[1] = loaded_program;
+				mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,hmi_to_seq_mbx,2);
+			}
+			if ( uart1_rx_buffer[4] == DWIN_PROG_STOP)
+			{
+				hmi_to_seq_mbx[0] = CMDPARSER_RET_HLT;
+				hmi_to_seq_mbx[1] = loaded_program;
+				mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,hmi_to_seq_mbx,2);
+				compile_and_send_5b_dwin_packet(uart_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
+				dwin_clear_fields(uart_driver_handle);
+				loaded_program = 0;
+				running = 0;
+				pause = 0;
+			}
 		}
 		break;
-	case	DWIN_PROG_STOP:
-		if ( loaded_program )
-		{
-			prc3_mbx_data[0] = CMDPARSER_RET_HLT;
-			prc3_mbx_data[1] = loaded_program;
-			mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,prc3_mbx_data,2);
-		}
+	case	DWIN_PROG_LOAD_HB:
+		hmi_to_seq_mbx[0] = CMDPARSER_RET_LOAD;
+		hmi_to_seq_mbx[1] = loaded_program = (uart1_rx_buffer[4] & 0x0f) + 1;
+		mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,hmi_to_seq_mbx,2);
 		break;
 	}
 	return 0;

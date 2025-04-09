@@ -50,7 +50,7 @@ uint8_t		xmodem_timeout = XMODEM_TIMEOUT;
 uint8_t		comm_state = COMM_NORMAL_MODE;
 uint8_t		presso_flash_error = 0;
 uint8_t		parsed_cmd;
-uint8_t		comm_to_seq_mbx[2];
+uint8_t		prc1_mbx_data[2];
 
 void ee_write(uint32_t data_len)
 {
@@ -59,6 +59,8 @@ Presso_ee_TypeDef	*pstruct;
 
 	if ( NevolSystem.param_from_host == 0 )
 		pstruct = &Presso_opening_ee;
+	else if ( NevolSystem.param_from_host == (PRESSO_MAX_PROGRAMS-1) )
+		pstruct = &Presso_closing_ee;
 	else
 		pstruct = &Presso_ee;
 	flash_address = NevolSystem.param_from_host * sizeof(Presso_ee_TypeDef);
@@ -166,24 +168,24 @@ uint32_t	file_type;	// 0 for csv , 1 for wav, defaults to csv
 						break;
 					case CMDPARSER_RET_LOADRUN:
 					case CMDPARSER_RET_LOAD:
-					case CMDPARSER_RET_RUN:
+					case CMDPARSER_RET_EXEC:
 					case CMDPARSER_RET_HLT:
 					case CMDPARSER_RET_PLAY:
 					case CMDPARSER_RET_MUTE:
 					case CMDPARSER_PLAY_SOUND:
-						comm_to_seq_mbx[0] = parsed_cmd;
-						comm_to_seq_mbx[1] = NevolSystem.param_from_host;
-						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,comm_to_seq_mbx,2);
+						prc1_mbx_data[0] = parsed_cmd;
+						prc1_mbx_data[1] = NevolSystem.param_from_host;
+						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,prc1_mbx_data,2);
 						break;
 					case CMDPARSER_TEST_MOTOR:
-						comm_to_seq_mbx[0] = parsed_cmd;
-						comm_to_seq_mbx[1] = NevolSystem.param_from_host;
-						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,comm_to_seq_mbx,2);
+						prc1_mbx_data[0] = parsed_cmd;
+						prc1_mbx_data[1] = NevolSystem.param_from_host;
+						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,prc1_mbx_data,2);
 						break;
 					case CMDPARSER_TEST_OPEN:
-						comm_to_seq_mbx[0] = parsed_cmd;
-						comm_to_seq_mbx[1] = NevolSystem.param_from_host;
-						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,comm_to_seq_mbx,2);
+						prc1_mbx_data[0] = parsed_cmd;
+						prc1_mbx_data[1] = NevolSystem.param_from_host;
+						mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_COMM_MBX,prc1_mbx_data,2);
 						break;
 					}
 				}

@@ -14,35 +14,19 @@
  * Project : A_os
 */
 /*
- * dwin_state_machine.h
+ * process_2_sequencer_audio.h
  *
- *  Created on: Apr 2, 2025
+ *  Created on: Apr 4, 2025
  *      Author: fil
  */
 
-#ifndef PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
-#define PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
+#ifndef PRESSOMASTER_PROCESS_2_SEQUENCER_AUDIO_H_
+#define PRESSOMASTER_PROCESS_2_SEQUENCER_AUDIO_H_
 
-typedef struct
-{
-	uint8_t				char_id;
-	uint8_t				ee_program;
-}DWIN_menus_t;
+extern	Presso_sound_TypeDef		Presso_Initial_sound[];
+extern	Presso_soundseq_TypeDef		Presso_soundseq;
 
-typedef struct
-{
-	uint8_t				index;
-	uint8_t				value;
-}DWIN_values_t;
+extern	void sound_seq_run ( void  );
+extern	void sound_seq_start ( Presso_sound_TypeDef *sound );
 
-#define	DWIN_CMDS_MASK		0xf0
-
-#define	DWIN_PROG_LOAD_HB			0x70
-#define	DWIN_PROG_CMD_HB			0x80
-#define	DWIN_PROG_PLAY				0x81
-#define	DWIN_PROG_STOP				0x80
-
-#define	DWIN_T_SECTOR	0x67
-#define	DWIN_PRESSURE	0x57
-
-#endif /* PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_ */
+#endif /* PRESSOMASTER_PROCESS_2_SEQUENCER_AUDIO_H_ */

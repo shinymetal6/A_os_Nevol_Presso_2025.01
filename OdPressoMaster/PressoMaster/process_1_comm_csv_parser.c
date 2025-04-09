@@ -24,10 +24,11 @@
 #include "A_os_includes.h"
 #include "presso.h"
 
+int		pnum,program_type,program_number,program_has_opening,program_has_closing,program_repetition_number;
 char	program_name[EE_PROG_NAME_SIZE];
 char	outconfig[32];
-int		heater_values[5],line_number,audionumber;
-int		program_number , program_number_of_lines , program_pressure , program_has_opening , program_step_time , program_complete_time,program_close_eoc;
+int		nline,ptime,press;
+int		heater_values[5],line_number,audionumber,force_motor_on;
 
 static uint32_t find_csv_cr(uint8_t *data_ptr)
 {
@@ -59,10 +60,11 @@ uint32_t cr_index = 0;
 uint32_t char_processed = 0;
 uint32_t line_index = 0;
 Presso_ee_TypeDef	*pstruct;
-int	pnum;
 
 	if ( NevolSystem.param_from_host == 0 )
 		pstruct = &Presso_opening_ee;
+	else if ( NevolSystem.param_from_host == 31 )
+		pstruct = &Presso_closing_ee;
 	else
 		pstruct = &Presso_ee;
 	bzero((uint8_t *)pstruct,sizeof(Presso_ee_TypeDef));
@@ -75,31 +77,35 @@ int	pnum;
 			cr_index = find_csv_cr(data_ptr);
 			if ( cr_index == 0 )
 				return 0;
-//			linetype , program_number , program_number_of_lines , program_pressure , program_has_opening , program_step_time , program_complete_time program_name
-			pnum = sscanf((char *)data_ptr,"S,%d,%d,%d,%d,%d,%d,%d,%s",
+			pnum = sscanf((char *)data_ptr,"S,%d,%d,%d,%d,%d,%d,%d,%d,%s",
+					&nline,
+					&ptime,
+					&press,
+					&program_type,
 					&program_number,
-					&program_number_of_lines,
-					&program_pressure,
 					&program_has_opening,
-					&program_step_time,
-					&program_complete_time,
-					&program_close_eoc,
+					&program_has_closing,
+					&program_repetition_number,
 					program_name
 					);
-			if ( pnum == 8 )
+			if ( pnum == 9 )
 			{
+				pstruct->program_number_of_lines = nline;
+				pstruct->program_time = ptime;
+				pstruct->program_pressure = press;
 				pstruct->program_number = program_number;
-				pstruct->program_number_of_lines = program_number_of_lines;
-				pstruct->program_pressure = program_pressure;
 				pstruct->program_has_opening = program_has_opening;
-				pstruct->program_step_time = program_step_time;
-				pstruct->program_complete_time = program_complete_time;
-				pstruct->program_close_eoc = program_close_eoc;
-				pstruct->program_valid_flag = EE_PROG_VALID_FLAG;
-				sprintf(pstruct->program_name,"%s",program_name);
+				pstruct->program_has_closing = program_has_closing;
+				pstruct->program_repetition_number = program_repetition_number;
+				if ( program_type == 1 )
+					pstruct->program_valid_flag = EE_PROG_VALID_LOOP_FLAG;
+				else if ( program_type == 0 )
+					pstruct->program_valid_flag = EE_PROG_VALID_SINGLE_FLAG;
+				else
+					return 0;
 				if ( char_processed > sizeof(Presso_ee_TypeDef))
 					return 0;
-				char_processed +=EE_PROG_HDR_SIZE;
+				char_processed +=cr_index;
 				data_ptr += cr_index;
 			}
 			else
@@ -110,17 +116,18 @@ int	pnum;
 			if ( cr_index == 0 )
 				return 0;
 
-			pnum = sscanf((char *)data_ptr,"L,%d,%d,%d,%d,%d,%d,%d,%s",
+			pnum = sscanf((char *)data_ptr,"L,%d,%d,%d,%d,%d,%d,%d,%d,%s",
 					&line_number,
 					&heater_values[0],
 					&heater_values[1],
 					&heater_values[2],
 					&heater_values[3],
 					&heater_values[4],
+					&force_motor_on,
 					&audionumber,
 					outconfig
 					);
-			if ( pnum == 8 )
+			if ( pnum == 9 )
 			{
 				pstruct->Presso_ee_line[line_index].line_number = line_number;
 				pstruct->Presso_ee_line[line_index].heater_values[0] = heater_values[0];
@@ -128,10 +135,13 @@ int	pnum;
 				pstruct->Presso_ee_line[line_index].heater_values[2] = heater_values[2];
 				pstruct->Presso_ee_line[line_index].heater_values[3] = heater_values[3];
 				pstruct->Presso_ee_line[line_index].heater_values[4] = heater_values[4];
+				pstruct->Presso_ee_line[line_index].force_motor_on = force_motor_on;
 				pstruct->Presso_ee_line[line_index].audionumber = audionumber;
 				pstruct->Presso_ee_line[line_index].gpio = convert_gpio();
 
-				char_processed +=EE_PROG_LINE_SIZE;
+				char_processed +=cr_index;
+				if ( char_processed > sizeof(Presso_ee_TypeDef))
+					return 0;
 				line_index++;
 				data_ptr += cr_index;
 			}
@@ -142,7 +152,7 @@ int	pnum;
 			cr_index = find_csv_cr(data_ptr);
 			if ( cr_index == 0 )
 				return 0;
-			char_processed ++;
+			char_processed +=cr_index;
 			return char_processed;
 			break;
 		case '/' :

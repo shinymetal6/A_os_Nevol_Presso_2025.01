@@ -194,6 +194,7 @@ void Nevol_DwTool::on_SelectEEFile_pushButton_clicked()
 {
     QString filters = "CSV files (*.csv)";
     program_filename = QFileDialog::getOpenFileName(this, tr("Open EE File"), "/Devel/Stm32_16.1_A_os_2025.04-rc/Nevol_Presso_Processes/Resources/Programs",filters);
+    int i;
 
     const QFileInfo info(program_filename);
     const QString program_basename(info.fileName());
@@ -210,6 +211,17 @@ void Nevol_DwTool::on_SelectEEFile_pushButton_clicked()
         qDebug()<<program_file_name;
         program_file_size = file.size();
         blob = file.readAll();
+        for(i=0;i<program_file_size;i++)
+        {
+            if ( blob[i] == 'S')
+            {
+                program_number = blob[i+2] - '0';
+                qDebug()<<program_number;
+                QString as;
+                as[0] = blob[i+2];
+                ui->PRGNUM_label->setText(as);
+            }
+        }
         file.close();
     }
 }
@@ -218,15 +230,65 @@ void Nevol_DwTool::on_SelectEEFile_pushButton_clicked()
 void Nevol_DwTool::on_DownloadEEFile_pushButton_clicked()
 {
 QString cmd;
+  QString tmp = tr("%1").arg(program_number);
     serial.flush();
-    if ( ui->ProgramNumber_comboBox->currentText() == "Opening")
-        cmd = "< PRG 0 >";
-    else if ( ui->ProgramNumber_comboBox->currentText() == "Diag")
-        cmd = "< PRG 30 >";
-    else if ( ui->ProgramNumber_comboBox->currentText() == "Closing")
+    switch ( program_number)
+    {
+    case    31   :
         cmd = "< PRG 31 >";
-    else
-        cmd = "< PRG "+ui->ProgramNumber_comboBox->currentText()+" >";
+        break;
+    case    0   :
+        cmd = "< PRG 0 >";
+        break;
+    case    1   :
+        cmd = "< PRG 1 >";
+        break;
+    case    2   :
+        cmd = "< PRG 2 >";
+        break;
+    case    3   :
+        cmd = "< PRG 3 >";
+        break;
+    case    4   :
+        cmd = "< PRG 4 >";
+        break;
+    case    5   :
+        cmd = "< PRG 5 >";
+        break;
+    case    6   :
+        cmd = "< PRG 6 >";
+        break;
+    case    7   :
+        cmd = "< PRG 7 >";
+        break;
+    case    8   :
+        cmd = "< PRG 8 >";
+        break;
+    case    9   :
+        cmd = "< PRG 9 >";
+        break;
+    case    10  :
+        cmd = "< PRG 10 >";
+        break;
+    case    11  :
+        cmd = "< PRG 11 >";
+        break;
+    case    12  :
+        cmd = "< PRG 12 >";
+        break;
+    case    13  :
+        cmd = "< PRG 13 >";
+        break;
+    case    14  :
+        cmd = "< PRG 14 >";
+        break;
+    case    15  :
+        cmd = "< PRG 15 >";
+        break;
+    }
+
+    qDebug()<<cmd;
+
     serial_tx(cmd.toUtf8());
     download_program();
 }
@@ -242,8 +304,6 @@ QString cmd;
             cmd = "< HLT 0 >";
         else if ( ui->RunProgramNumber_comboBox->currentText() == "Diag")
             cmd = "< HLT 30 >";
-        else if ( ui->RunProgramNumber_comboBox->currentText() == "Closing")
-            cmd = "< HLT 31 >";
         else
             cmd = "< HLT "+ui->RunProgramNumber_comboBox->currentText()+" >";
         serial_tx(cmd.toUtf8());
@@ -253,11 +313,9 @@ QString cmd;
     {
         serial.flush();
         if ( ui->RunProgramNumber_comboBox->currentText() == "Opening")
-            cmd = "< LOR 0 >";
-        if ( ui->RunProgramNumber_comboBox->currentText() == "Diag")
+            cmd = "< RUN 0 >";
+        else if ( ui->RunProgramNumber_comboBox->currentText() == "Diag")
             cmd = "< LOR 30 >";
-        if ( ui->RunProgramNumber_comboBox->currentText() == "Closing")
-            cmd = "< LOR 31 >";
         else
             cmd = "< LOR "+ui->RunProgramNumber_comboBox->currentText()+" >";
 

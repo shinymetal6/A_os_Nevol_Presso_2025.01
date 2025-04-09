@@ -27,12 +27,13 @@
 
 __attribute__ ((aligned (32)))	Presso_ee_TypeDef			Presso_ee;
 __attribute__ ((aligned (32)))	Presso_ee_TypeDef			Presso_opening_ee;
+__attribute__ ((aligned (32)))	Presso_ee_TypeDef			Presso_closing_ee;
 __attribute__ ((aligned (32)))	Presso_Sequencer_TypeDef	Presso_Sequencer;
 __attribute__ ((aligned (32)))	Presso_soundseq_TypeDef		Presso_soundseq;
 
-uint8_t		seq_from_comm_mbx_rxbuf[sizeof(uint32_t)];
+uint8_t		prc1_mbx_rxbuf[sizeof(uint32_t)];
 uint8_t		prc2_mbx_data[sizeof(uint32_t)];
-uint8_t		seq_from_hmi_mbx_rxbuf[sizeof(uint32_t)];
+uint8_t		prc3_mbx_rxbuf[sizeof(uint32_t)];
 //extern	uint8_t		prc3_mbx_data[sizeof(uint32_t)];
 
 uint8_t		mbx_seq_2_hmi[sizeof(uint32_t)];
@@ -51,6 +52,7 @@ void setup_state(Presso_ee_TypeDef	*next_pstruct)
 			);
 	if ( next_pstruct->Presso_ee_line[Presso_Sequencer.sequence].audionumber != 0 )
 		dac_play_wav(dac_driver_handle,(uint16_t *)(BANK_2_ADDRESS + (next_pstruct->Presso_ee_line[Presso_Sequencer.sequence].audionumber * WAV_MAX_SIZE)) );
+	process_2_sequencer_set_motor( next_pstruct->Presso_ee_line[Presso_Sequencer.sequence].force_motor_on );
 }
 
 void halt_sequencer(void)
@@ -66,58 +68,60 @@ void run_sequencer(void)
 {
 Presso_ee_TypeDef	*pstruct;
 
-	if (( Presso_Sequencer.state & SEQUENCER_STATE_PAUSE) == SEQUENCER_STATE_PAUSE)
-		return;
-	if ( Presso_Sequencer.step_time )
-		Presso_Sequencer.step_time--;
-	if ( Presso_Sequencer.step_time == 0 )
+	Presso_Sequencer.time--;
+	if ( Presso_Sequencer.time == 0 )
 	{
-		if (( Presso_Sequencer.state & SEQUENCER_STATE_OPENING) == SEQUENCER_STATE_OPENING)
+		if ( Presso_Sequencer.state == SEQUENCER_STATE_OPENING)
 			pstruct = &Presso_opening_ee;
-		else if (( Presso_Sequencer.state & SEQUENCER_STATE_RUNNING ) == SEQUENCER_STATE_RUNNING)
+		else if ( Presso_Sequencer.state == SEQUENCER_STATE_RUNNING)
 			pstruct = &Presso_ee;
+		else if ( Presso_Sequencer.state == SEQUENCER_STATE_CLOSING)
+			pstruct = &Presso_closing_ee;
 		else
 			return;
+		Presso_Sequencer.time = pstruct->program_time;
+		Presso_Sequencer.repetition_number = pstruct->program_repetition_number;
 
-		if ( Presso_Sequencer.complete_time )
-			Presso_Sequencer.complete_time--;
-		if (( Presso_Sequencer.complete_time == 0 ) && ( pstruct->program_close_eoc == 0 ))
+		if ( Presso_Sequencer.sequence >= pstruct->program_number_of_lines)
 		{
-			halt_sequencer();
-			return;
-		}
-
-		Presso_Sequencer.step_time = pstruct->program_step_time;
-
-		if ( Presso_Sequencer.sequence >= pstruct->program_number_of_lines-1)
-		{
-			if (( Presso_Sequencer.state & SEQUENCER_STATE_OPENING) == SEQUENCER_STATE_OPENING)
-			{
-				pstruct = &Presso_ee;
-				Presso_Sequencer.step_time = pstruct->program_step_time;
-				Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
-			}
-			else if (( Presso_Sequencer.state & SEQUENCER_STATE_RUNNING ) == SEQUENCER_STATE_RUNNING)
+			if ( Presso_Sequencer.state == SEQUENCER_STATE_OPENING)
 			{
 				Presso_Sequencer.sequence = 0;
+				pstruct = &Presso_ee;
+				setup_state(pstruct);
+				Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
 			}
-			else
+			else if ( Presso_Sequencer.state == SEQUENCER_STATE_RUNNING)
 			{
-				halt_sequencer();
-				return;
+				Presso_Sequencer.sequence = 0;
+				pstruct = &Presso_ee;
+				setup_state(pstruct);
+				if (( pstruct->program_valid_flag == EE_PROG_VALID_LOOP_FLAG) && ( pstruct->program_repetition_number > 1 ))
+				{
+					Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
+					pstruct->program_repetition_number--;
+				}
+				else
+				{
+					if ( pstruct->program_has_closing )
+					{
+						Presso_Sequencer.sequence = 0;
+						pstruct = &Presso_closing_ee;
+						setup_state(pstruct);
+						Presso_Sequencer.state = SEQUENCER_STATE_CLOSING;
+					}
+					else
+						halt_sequencer();
+				}
 			}
-			if ( Presso_Sequencer.complete_time == 0 )
-			{
+			else if ( Presso_Sequencer.state == SEQUENCER_STATE_CLOSING)
 				halt_sequencer();
-				return;
-			}
-			Presso_Sequencer.sequence = 0;
 		}
 		else
 		{
-			Presso_Sequencer.sequence ++;
+			setup_state(pstruct);
 		}
-		setup_state(pstruct);
+		Presso_Sequencer.sequence ++;
 	}
 }
 
@@ -131,15 +135,11 @@ uint8_t load_program_and_execute(uint8_t program_number)
 	{
 		if ( mem_load_program(program_number) == 0)
 		{
-			Presso_Sequencer.step_time = Presso_ee.program_step_time;
-			Presso_Sequencer.complete_time = Presso_ee.program_complete_time;
+			Presso_Sequencer.time = Presso_ee.program_time;
 			if ( Presso_ee.program_has_opening == 0 )
 				Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
 			else
-			{
-				Presso_Sequencer.complete_time += Presso_opening_ee.program_complete_time;
 				Presso_Sequencer.state = SEQUENCER_STATE_OPENING;
-			}
 			Presso_Sequencer.sequence = 0;
 			return 0;
 		}
@@ -164,33 +164,18 @@ uint8_t execute_program(uint8_t program_number)
 {
 	if ( program_number < PRESSO_MAX_PROGRAMS )
 	{
-		Presso_Sequencer.step_time = Presso_ee.program_step_time;
-		Presso_Sequencer.complete_time = Presso_ee.program_complete_time;
-		if ( Presso_ee.program_has_opening == 0 )
-			Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
-		else
+		if (( Presso_ee.program_valid_flag == EE_PROG_VALID_LOOP_FLAG ) || ( Presso_ee.program_valid_flag == EE_PROG_VALID_SINGLE_FLAG ) )
 		{
-			Presso_Sequencer.complete_time += Presso_opening_ee.program_complete_time;
-			Presso_Sequencer.state = SEQUENCER_STATE_OPENING;
+			Presso_Sequencer.time = Presso_ee.program_time;
+			if ( Presso_ee.program_has_opening == 0 )
+				Presso_Sequencer.state = SEQUENCER_STATE_RUNNING;
+			else
+				Presso_Sequencer.state = SEQUENCER_STATE_OPENING;
+			Presso_Sequencer.sequence = 0;
+			return 0;
 		}
-		Presso_Sequencer.sequence = 0;
-		return 0;
 	}
 	return 1;
-}
-
-uint8_t pause_sequencer(uint8_t program_number)
-{
-	if ( program_number < PRESSO_MAX_PROGRAMS )
-		Presso_Sequencer.state |= SEQUENCER_STATE_PAUSE;
-	return 0;
-}
-
-uint8_t unpause_sequencer(uint8_t program_number)
-{
-	if ( program_number < PRESSO_MAX_PROGRAMS )
-		Presso_Sequencer.state &= ~SEQUENCER_STATE_PAUSE;
-	return 0;
 }
 
 uint8_t halt_program(uint8_t program_number)
@@ -203,6 +188,7 @@ uint8_t halt_program(uint8_t program_number)
 	}
 	return 1;
 }
+
 
 Presso_ee_TypeDef *get_sequencer_params(void)
 {
@@ -231,7 +217,7 @@ uint8_t		sequencer_prescaler;
 			sound_seq_run();
 		if ((( wakeup & WAKEUP_FROM_TIMER) == WAKEUP_FROM_TIMER) && ((flags & TIMER_ID_0) == TIMER_ID_0))
 		{
-			if ((Presso_Sequencer.state == SEQUENCER_STATE_OPENING ) || (Presso_Sequencer.state == SEQUENCER_STATE_RUNNING ))
+			if ((Presso_Sequencer.state == SEQUENCER_STATE_OPENING ) || (Presso_Sequencer.state == SEQUENCER_STATE_RUNNING )  || (Presso_Sequencer.state == SEQUENCER_STATE_CLOSING ))
 			{
 				if ( sequencer_prescaler )
 					sequencer_prescaler--;
@@ -246,69 +232,65 @@ uint8_t		sequencer_prescaler;
 			{
 				Presso_Sequencer.state = SEQUENCER_STATE_IDLE;
 				Presso_Sequencer.sequence = 0;
-				mbx_seq_2_hmi[0] = SEQUENCE_FINISHED;
-				mbx_seq_2_hmi[1] = 0;
-				mbx_send(PRESSO_HMI_PROCESS,PRESSO_HMI_MBX,mbx_seq_2_hmi,2);
 			}
 		}
 		if (( wakeup & WAKEUP_FROM_MBX) == WAKEUP_FROM_MBX)
 		{
-			mbx_size = mbx_receive(PRESSO_COMM_MBX,seq_from_comm_mbx_rxbuf);
+			mbx_size = mbx_receive(PRESSO_COMM_MBX,prc1_mbx_rxbuf);
 			if ( mbx_size )
 			{
-				if ( seq_from_comm_mbx_rxbuf[0] == CMDPARSER_RET_LOADRUN)
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_LOADRUN)
 				{
 					sequencer_prescaler = SEQUENCER_TICK_TIME;
-					if ( load_program(seq_from_comm_mbx_rxbuf[1]) == 0 )
-						execute_program(seq_from_comm_mbx_rxbuf[1]);
+					if ( load_program(prc1_mbx_rxbuf[1]) == 0 )
+						execute_program(prc1_mbx_rxbuf[1]);
 				}
-				if ( seq_from_comm_mbx_rxbuf[0] == CMDPARSER_RET_RUN)
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_EXEC)
 				{
-					execute_program(seq_from_comm_mbx_rxbuf[1]);
+					execute_program(prc1_mbx_rxbuf[1]);
 				}
-				if ( seq_from_comm_mbx_rxbuf[0] == CMDPARSER_RET_LOAD)
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_LOAD)
 				{
-					if ( load_program(seq_from_comm_mbx_rxbuf[1]) == 0 )
+					if ( load_program(prc1_mbx_rxbuf[1]) == 0 )
 					{
 					}
 				}
-				if ( seq_from_comm_mbx_rxbuf[0] == CMDPARSER_RET_HLT)
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_HLT)
 				{
-					halt_program(seq_from_comm_mbx_rxbuf[1]);
+					halt_program(prc1_mbx_rxbuf[1]);
 				}
-				if ( seq_from_comm_mbx_rxbuf[0] == CMDPARSER_RET_PLAY)
-					dac_play_wav(dac_driver_handle,(uint16_t *)(BANK_2_ADDRESS + ((seq_from_comm_mbx_rxbuf[1]-1) * WAV_MAX_SIZE)) );
-				if ( seq_from_comm_mbx_rxbuf[0] == CMDPARSER_RET_MUTE)
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_PLAY)
+					dac_play_wav(dac_driver_handle,(uint16_t *)(BANK_2_ADDRESS + ((prc1_mbx_rxbuf[1]-1) * WAV_MAX_SIZE)) );
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_RET_MUTE)
 					dac_stop_wav(dac_driver_handle);
+				/*
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_PLAY_SOUND)
+					initial_beep = 0;
+					*/
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_TEST_MOTOR)
+					process_2_sequencer_set_motor( prc1_mbx_rxbuf[1] & 0x01 );
+				if ( prc1_mbx_rxbuf[0] == CMDPARSER_TEST_OPEN)
+					process_2_sequencer_set_test_gpio( prc1_mbx_rxbuf[1] & 0x01 );
 			}
-			mbx_size = mbx_receive(PRESSO_HMI_MBX,seq_from_hmi_mbx_rxbuf);
+			mbx_size = mbx_receive(PRESSO_HMI_MBX,prc3_mbx_rxbuf);
 			if ( mbx_size )
 			{
-				if ( seq_from_hmi_mbx_rxbuf[0] == CMDPARSER_RET_RUN)
+				if ( prc3_mbx_rxbuf[0] == CMDPARSER_RET_EXEC)
 				{
-					execute_program(seq_from_hmi_mbx_rxbuf[1]);
+					execute_program(prc3_mbx_rxbuf[1]);
 				}
-				if ( seq_from_hmi_mbx_rxbuf[0] == CMDPARSER_RET_PAUSE)
+				if ( prc3_mbx_rxbuf[0] == CMDPARSER_RET_LOAD)
 				{
-					pause_sequencer(seq_from_hmi_mbx_rxbuf[1]);
-				}
-				if ( seq_from_hmi_mbx_rxbuf[0] == CMDPARSER_RET_UNPAUSE)
-				{
-					unpause_sequencer(seq_from_hmi_mbx_rxbuf[1]);
-				}
-
-				if ( seq_from_hmi_mbx_rxbuf[0] == CMDPARSER_RET_LOAD)
-				{
-					if ( load_program(seq_from_hmi_mbx_rxbuf[1]) == 0 )
+					if ( load_program(prc3_mbx_rxbuf[1]) == 0 )
 					{
 						mbx_seq_2_hmi[0] = UPDATE_LCD_PARAMS;
-						mbx_seq_2_hmi[1] = seq_from_hmi_mbx_rxbuf[1];
+						mbx_seq_2_hmi[1] = UPDATE_LCD_PARAMS;
 						mbx_send(PRESSO_HMI_PROCESS,PRESSO_HMI_MBX,mbx_seq_2_hmi,2);
 					}
 				}
-				if ( seq_from_hmi_mbx_rxbuf[0] == CMDPARSER_RET_HLT)
+				if ( prc3_mbx_rxbuf[0] == CMDPARSER_RET_HLT)
 				{
-					halt_program(seq_from_hmi_mbx_rxbuf[1]);
+					halt_program(prc3_mbx_rxbuf[1]);
 				}
 			}
 		}

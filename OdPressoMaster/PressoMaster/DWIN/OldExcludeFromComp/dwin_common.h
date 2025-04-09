@@ -23,9 +23,7 @@
 #define PRESSOMASTER_DWIN_DWIN_COMMON_H_
 
 
-#define	DWIN_PKT_MAX_LEN	4
-
-#define	DWIN_PKT_QUEUE_LEN	8
+#define	DWIN_PKT_MAX_LEN	8
 
 
 typedef struct
@@ -37,34 +35,32 @@ typedef struct
 	uint8_t				address_h;
 	uint8_t				address_l;
 	uint8_t				pktbytes[DWIN_PKT_MAX_LEN];
-}DWIN_packet_typedef;
+}DWIN_packet_t;
 
 #define	HMI_HEADER1		0x5a
 #define	HMI_HEADER2		0xa5
 #define	HMI_WRITE_CMD	0x82
 #define	HMI_READ_CMD	0x83
 
+typedef struct
+{
+	uint8_t				state;
+}DWIN_combo_t;
+
+
 #define	DWIN_KBD_OK		0xf1
 #define	DWIN_KBD_BACK	0xf0
+extern	DWIN_packet_t	DWIN_packet;
+extern	NevolSystem_t	NevolSystem;
 
-#define	PLAY_PAUSE_BTN_ADDR		0x8100
-#define	PLAY_PAUSE_BTN_PLAY		0x0000
-#define	PLAY_PAUSE_BTN_PAUSE	0x0001
-
-#define	PRESSURE_BASE_ADDRESS	0x5000
-#define	TSECTOR_BASE_ADDRESS	0x6000
-
-
-extern	DWIN_packet_typedef			DWIN_packet;
-extern	NevolSystem_typedef			NevolSystem;
-
-extern	uint32_t process_from_dwin(uint32_t uart1_driver_handle,uint8_t *uart1_rx_buffer,uint32_t uart_rxlen);
-extern	uint32_t compile_and_send_7b_dwin_packet(uint32_t uart_driver_handle,uint16_t address,uint32_t data);
-extern	uint32_t compile_and_send_5b_dwin_packet(uint32_t uart_driver_handle,uint16_t address,uint16_t data);
-extern	uint32_t compile_and_send_5b_dwin_packet_queue(uint32_t uart_driver_handle,uint16_t address,uint16_t data);
-extern	void 	 dwin_update_fields(uint32_t uart_driver_handle, Presso_ee_TypeDef *current_presso_ee);
-extern	void 	 dwin_clear_fields(uint32_t uart_driver_handle);
-extern	uint32_t dwin_state_machine_reset (void);
+extern	uint32_t verify_display_ready(uint32_t uart2_driver_handle);
+extern	uint32_t compile_and_send_7b_dwin_packet(uint32_t uart2_driver_handle,uint16_t address,uint32_t data);
+extern	uint32_t compile_and_send_5b_dwin_packet(uint32_t uart2_driver_handle,uint16_t address,uint16_t data);
+extern	uint32_t password_manager(uint32_t uart2_driver_handle,uint8_t  *dwin_rx_packet,uint8_t  dwin_rx_packet_len);
+extern	uint16_t get_kbd_key(uint8_t  *dwin_rx_packet);
+extern	uint32_t check_std_reply(uint8_t  *dwin_rx_packet);
+extern	uint32_t check_ready_reply(uint8_t  *dwin_rx_packet);
+extern	uint32_t msg_to_sequencer(uint8_t code , uint8_t program_number);
 
 
 #endif /* PRESSOMASTER_DWIN_DWIN_COMMON_H_ */

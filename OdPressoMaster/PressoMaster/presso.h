@@ -81,7 +81,6 @@ typedef struct
 #define BANK_2_ADDRESS	0x08100000
 
 #define	UPDATE_LCD_PARAMS		0x7e
-#define	SEQUENCE_FINISHED		0xe7
 
 #include "process_1_comm_cmdparser.h"
 #include "process_1_comm_csv_parser.h"

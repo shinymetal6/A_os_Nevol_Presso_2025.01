@@ -14,35 +14,15 @@
  * Project : A_os
 */
 /*
- * dwin_state_machine.h
+ * process_1_comm_csv_parser.h
  *
- *  Created on: Apr 2, 2025
+ *  Created on: Nov 26, 2024
  *      Author: fil
  */
 
-#ifndef PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
-#define PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
+#ifndef PROCESS_1_COMM_CSV_PARSER_H_
+#define PROCESS_1_COMM_CSV_PARSER_H_
 
-typedef struct
-{
-	uint8_t				char_id;
-	uint8_t				ee_program;
-}DWIN_menus_t;
+extern	uint32_t decode_csv(uint8_t *data_ptr,uint32_t data_len);
 
-typedef struct
-{
-	uint8_t				index;
-	uint8_t				value;
-}DWIN_values_t;
-
-#define	DWIN_CMDS_MASK		0xf0
-
-#define	DWIN_PROG_LOAD_HB			0x70
-#define	DWIN_PROG_CMD_HB			0x80
-#define	DWIN_PROG_PLAY				0x81
-#define	DWIN_PROG_STOP				0x80
-
-#define	DWIN_T_SECTOR	0x67
-#define	DWIN_PRESSURE	0x57
-
-#endif /* PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_ */
+#endif /* PROCESS_1_COMM_CSV_PARSER_H_ */

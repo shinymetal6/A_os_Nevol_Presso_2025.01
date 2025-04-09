@@ -83,8 +83,8 @@ uint16_t	pnum;
 			return CMDPARSER_RET_LOADRUN;
 		if ( strcmp((char *)NevolSystem.command_from_host,"LOA") == 0 )
 			return CMDPARSER_RET_LOAD;
-		if ( strcmp((char *)NevolSystem.command_from_host,"RUN") == 0 )
-			return CMDPARSER_RET_RUN;
+		if ( strcmp((char *)NevolSystem.command_from_host,"EXE") == 0 )
+			return CMDPARSER_RET_EXEC;
 		if ( strcmp((char *)NevolSystem.command_from_host,"HLT") == 0 )
 			return CMDPARSER_RET_HLT;
 		if ( strcmp((char *)NevolSystem.command_from_host,"PLY") == 0 )

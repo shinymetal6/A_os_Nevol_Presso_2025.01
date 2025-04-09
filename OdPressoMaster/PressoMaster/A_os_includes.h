@@ -11,38 +11,22 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
- * Project : A_os
+ * Project : fy-201023-01 
 */
 /*
- * dwin_state_machine.h
+ * A_os_includes.h
  *
- *  Created on: Apr 2, 2025
+ *  Created on: Jan 2, 2024
  *      Author: fil
  */
 
-#ifndef PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
-#define PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
+#ifndef STM32H753_BASICPROCESSES_A_OS_INCLUDES_H_
+#define STM32H753_BASICPROCESSES_A_OS_INCLUDES_H_
 
-typedef struct
-{
-	uint8_t				char_id;
-	uint8_t				ee_program;
-}DWIN_menus_t;
+#include "../../A_os/kernel/A.h"
+#include "../../A_os/kernel/system_default.h"
+#include "../../A_os/kernel/A_exported_functions.h"
+#include <stdio.h>
+#include <string.h>
 
-typedef struct
-{
-	uint8_t				index;
-	uint8_t				value;
-}DWIN_values_t;
-
-#define	DWIN_CMDS_MASK		0xf0
-
-#define	DWIN_PROG_LOAD_HB			0x70
-#define	DWIN_PROG_CMD_HB			0x80
-#define	DWIN_PROG_PLAY				0x81
-#define	DWIN_PROG_STOP				0x80
-
-#define	DWIN_T_SECTOR	0x67
-#define	DWIN_PRESSURE	0x57
-
-#endif /* PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_ */
+#endif /* STM32H743_BASICPROCESSES_A_OS_INCLUDES_H_ */

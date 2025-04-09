@@ -26,16 +26,18 @@
 extern	NevolSystem_typedef	NevolSystem;
 extern	UART_HandleTypeDef	huart1;
 
-#define	UART_RX_BUF_SIZE	16
-#define	UART_TX_BUF_SIZE	16
+#define	UART_RX_BUF_SIZE	64
+#define	UART_TX_BUF_SIZE	64
 
 uint8_t	uart1_rx_buffer[UART_RX_BUF_SIZE];
 uint8_t	uart1_tx_buffer[UART_TX_BUF_SIZE];
 
-uint8_t	hmi_from_seq_mbx[sizeof(uint32_t)];
-uint8_t	hmi_to_seq_mbx[sizeof(uint32_t)];
+uint8_t	mbx_hmi_from_seq[sizeof(uint32_t)];
+uint8_t	mbx_hmi_to_seq[sizeof(uint32_t)];
 
 Presso_ee_TypeDef *current_presso_ee;
+
+DWIN_packet_queue_typedef	DWIN_packet_queue;
 
 UART_Drv_TypeDef Uart1_Drv =
 {
@@ -81,14 +83,13 @@ void process_3_dwin_hmi(uint32_t process_id)
 {
 uint32_t	wakeup,flags;
 uint32_t	mbx_size;
-uint32_t	cleared=0;
+uint16_t	program_time;
 
 	uart1_driver_handle = uart_register(&Uart1_Drv);
 	uart_start_receive(uart1_driver_handle);
-	bzero(uart1_rx_buffer,UART_RX_BUF_SIZE);
 
 	create_timer(TIMER_ID_0,100,TIMERFLAGS_FOREVER | TIMERFLAGS_ENABLED);
-
+	bzero(uart1_rx_buffer,UART_RX_BUF_SIZE);
 	while(1)
 	{
 		wait_event(EVENT_TIMER | EVENT_MBX | Uart1_Drv.wakeup_id);
@@ -96,31 +97,35 @@ uint32_t	cleared=0;
 
 		if (( wakeup & WAKEUP_FROM_TIMER) == WAKEUP_FROM_TIMER)
 		{
-			if ( cleared == 0 )
+			if ( DWIN_packet_queue.tx_queue_index != DWIN_packet_queue.txdone_queue_index)
 			{
-				dwin_clear_fields(uart1_driver_handle);
-				compile_and_send_5b_dwin_packet(uart1_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
-				cleared = 1;
+				DWIN_packet_queue.txdone_queue_index++;
+				uart_send(uart1_driver_handle, (uint8_t *)&DWIN_packet_queue.pkt[DWIN_packet_queue.txdone_queue_index],8);
+				DWIN_packet_queue.txdone_queue_index &= (DWIN_PKT_QUEUE_LEN-1);
 			}
+			else
+				DWIN_packet_queue.DWIN_packet_status &= ~QUEUE_TRANSMITTING;
+
 			led_process();
+			dwin_state_machine(uart1_driver_handle);
 		}
 		if (( wakeup & WAKEUP_FROM_MBX) == WAKEUP_FROM_MBX)
 		{
-			mbx_size = mbx_receive(PRESSO_HMI_MBX,hmi_from_seq_mbx);
+			mbx_size = mbx_receive(PRESSO_HMI_PROCESS,mbx_hmi_from_seq);
 			if ( mbx_size )
 			{
-				if ( hmi_from_seq_mbx[0] == UPDATE_LCD_PARAMS )
+				if ( mbx_hmi_from_seq[0] == UPDATE_LCD_PARAMS )
 				{
 					current_presso_ee = get_sequencer_params();
-					dwin_update_fields(uart1_driver_handle,current_presso_ee);
-				}
-				if ( hmi_from_seq_mbx[0] == SEQUENCE_FINISHED )
-				{
-					compile_and_send_5b_dwin_packet(uart1_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
-					dwin_state_machine_reset();
+					if ( current_presso_ee->program_repetition_number == 0 )
+						current_presso_ee->program_repetition_number = 1;
+					program_time = current_presso_ee->program_number_of_lines * current_presso_ee->program_repetition_number * current_presso_ee->program_time;
+					compile_and_send_5b_dwin_packet_queue(uart1_driver_handle,0x5000+(current_presso_ee->program_number-1)*0x100,current_presso_ee->program_pressure);
+					compile_and_send_5b_dwin_packet_queue(uart1_driver_handle,0x6000+(current_presso_ee->program_number-1)*0x100,current_presso_ee->program_time);
+					compile_and_send_5b_dwin_packet_queue(uart1_driver_handle,0x0130,program_time);
 				}
 			}
-		}
+		}/* 8100 */
 		if (( wakeup & Uart1_Drv.wakeup_id) == Uart1_Drv.wakeup_id)
 		{
 			if (( flags & WAKEUP_FLAGS_UART_RX) == WAKEUP_FLAGS_UART_RX )

@@ -72,6 +72,8 @@ private:
     int audio_file_size;
 
     QByteArray blob;
+    int program_number;
+
 
     int timer0Id;
     int timerint;

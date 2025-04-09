@@ -36,15 +36,15 @@ typedef struct
 {
 	uint8_t				state;
 	uint16_t			sequence;
-	uint16_t			step_time;
-	uint16_t			complete_time;
+	uint16_t			time;
+	uint8_t				flags;
 }Presso_Sequencer_TypeDef;
 /*state*/
-#define	SEQUENCER_STATE_IDLE		0x00
-#define	SEQUENCER_STATE_OPENING		0x01
-#define	SEQUENCER_STATE_RUNNING		0x02
-#define	SEQUENCER_STATE_FINISHED	0x04
-#define	SEQUENCER_STATE_PAUSE		0x80
+#define	SEQUENCER_STATE_IDLE		0
+#define	SEQUENCER_STATE_OPENING		1
+#define	SEQUENCER_STATE_RUNNING		2
+#define	SEQUENCER_STATE_CLOSING		3
+#define	SEQUENCER_STATE_FINISHED	4
 
 typedef struct
 {

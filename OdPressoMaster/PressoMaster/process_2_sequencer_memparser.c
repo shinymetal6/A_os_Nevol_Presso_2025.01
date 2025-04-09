@@ -26,22 +26,26 @@
 #include "process_2_sequencer.h"
 #include "process_2_sequencer_memparser.h"
 
-uint16_t	size_ss;
 uint32_t mem_load_program(uint8_t program_number)
 {
 uint32_t 	address = 0;
 uint32_t	ret_val;
 
-	size_ss = sizeof(Presso_ee_TypeDef);
 	bzero((uint8_t *)&Presso_opening_ee,sizeof(Presso_ee_TypeDef));
 	ret_val = i2c_extflash_read(i2cflash_driver_handle,address,(uint8_t *)&Presso_opening_ee,sizeof(Presso_ee_TypeDef));
-	if ((ret_val == 0) && (Presso_opening_ee.program_valid_flag == EE_PROG_VALID_FLAG))
+	if ((ret_val == 0) && ((Presso_opening_ee.program_valid_flag == EE_PROG_VALID_LOOP_FLAG) || (Presso_opening_ee.program_valid_flag == EE_PROG_VALID_SINGLE_FLAG)))
 	{
 		bzero((uint8_t *)&Presso_ee,sizeof(Presso_ee_TypeDef));
 		address = program_number * sizeof(Presso_ee_TypeDef);
 		ret_val = i2c_extflash_read(i2cflash_driver_handle,address,(uint8_t *)&Presso_ee,sizeof(Presso_ee_TypeDef));
-		if ((ret_val == 0) && (Presso_ee.program_valid_flag == EE_PROG_VALID_FLAG))
-			return 0;
+		if ((ret_val == 0) && ((Presso_ee.program_valid_flag == EE_PROG_VALID_LOOP_FLAG) || (Presso_ee.program_valid_flag == EE_PROG_VALID_SINGLE_FLAG)))
+		{
+			bzero((uint8_t *)&Presso_closing_ee,sizeof(Presso_ee_TypeDef));
+			address = (PRESSO_MAX_PROGRAMS-1) * sizeof(Presso_ee_TypeDef);
+			ret_val = i2c_extflash_read(i2cflash_driver_handle,address,(uint8_t *)&Presso_closing_ee,sizeof(Presso_ee_TypeDef));
+			if ((ret_val == 0) && ((Presso_closing_ee.program_valid_flag == EE_PROG_VALID_LOOP_FLAG) || (Presso_closing_ee.program_valid_flag == EE_PROG_VALID_SINGLE_FLAG)))
+				return 0;
+		}
 	}
 	return 1;
 }

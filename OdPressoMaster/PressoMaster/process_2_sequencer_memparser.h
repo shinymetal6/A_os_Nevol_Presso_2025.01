@@ -27,38 +27,35 @@
 
 typedef struct
 {
-	uint8_t		line_number;
-	uint8_t		audionumber;
-	uint8_t		flags;
-	uint8_t		heater_values[5];
-	uint16_t	gpio;
-	uint8_t		unused[6];
+	uint8_t			line_number;
+	uint8_t			force_motor_on;
+	uint8_t			audionumber;
+	uint8_t			pressure;
+	uint16_t		gpio;
+	uint16_t		heater_values[5];
 }Presso_ee_line_TypeDef;
 
-/* the program header is 32 bytes long
- * a program line is 16 bytes long
- * there are 30 lines per program
- * size must be 512
+/* assuming a program header is composed by 32 bytes
+ * and a program line is composed by 16 bytes
 */
 #define	EE_PROG_NAME_SIZE		22
-#define	EE_MAX_LINE_NUMBER		30
+#define	EE_MAX_LINE_NUMBER		62
 
 typedef struct
 {
 	uint8_t					program_valid_flag;			// 1
-	uint8_t					program_number;				// 1
-	uint8_t					program_number_of_lines;	// 1
 	uint8_t					program_pressure;			// 1
+	uint8_t					program_number;				// 1
 	uint8_t					program_has_opening;		// 1
-	uint8_t					program_close_eoc;			// 1
-	uint16_t				program_step_time;			// 2
-	uint16_t				program_complete_time;		// 2
+	uint8_t					program_has_closing;		// 1
+	uint8_t					program_repetition_number;	// 1
+	uint16_t				program_time;				// 2
+	uint8_t					program_number_of_lines;	// 1
 	char					program_name[EE_PROG_NAME_SIZE];
 	Presso_ee_line_TypeDef	Presso_ee_line[EE_MAX_LINE_NUMBER];
 }Presso_ee_TypeDef;
-#define	EE_PROG_VALID_FLAG		0xe7
-#define	EE_PROG_HDR_SIZE		32
-#define	EE_PROG_LINE_SIZE		16
+#define	EE_PROG_VALID_LOOP_FLAG		0x7e
+#define	EE_PROG_VALID_SINGLE_FLAG	0xe7
 
 extern	uint32_t mem_load_program(uint8_t program_number);
 

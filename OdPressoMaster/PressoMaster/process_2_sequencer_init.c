@@ -290,7 +290,6 @@ void process_2_sequencer_set_timers(uint32_t ht1,uint32_t ht2,uint32_t ht3,uint3
 	pwm_set_width(tim3_4_driver_handle,ht5*100);
 }
 
-/*
 void process_2_sequencer_set_motor(uint8_t motor)
 {
 	if ( motor )
@@ -298,7 +297,7 @@ void process_2_sequencer_set_motor(uint8_t motor)
 	else
 		HAL_GPIO_WritePin(MOTOR_ON_GPIO_Port, MOTOR_ON_Pin, GPIO_PIN_RESET);
 }
-*/
+
 void process_2_sequencer_set_test_gpio(uint8_t level)
 {
 	if ( level )

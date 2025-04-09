@@ -59,27 +59,29 @@ uint32_t compile_and_send_5b_dwin_packet(uint32_t uart_driver_handle,uint16_t ad
 	DWIN_packet.pktbytes[0] = data >> 8;
 	DWIN_packet.pktbytes[1] = data;
 	dwinsend(uart_driver_handle,8);
-	task_delay(10);
 	return 0;
 }
 
-void dwin_update_fields(uint32_t uart_driver_handle,Presso_ee_TypeDef *current_presso_ee)
+uint32_t compile_and_send_5b_dwin_packet_queue(uint32_t uart_driver_handle,uint16_t address,uint16_t data)
 {
-uint32_t	i;
-	for(i=0;i<8;i++)
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].start_flag_1 = HMI_HEADER1;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].start_flag_2 = HMI_HEADER2;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].number_of_bytes = 0x05;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].command = HMI_WRITE_CMD;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].address_h = address>>8;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].address_l = address;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].pktbytes[0] = data >> 8;
+	DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index].pktbytes[1] = data;
+	__disable_irq();
+	if ((DWIN_packet_queue.DWIN_packet_status & QUEUE_TRANSMITTING) != QUEUE_TRANSMITTING)
 	{
-		compile_and_send_5b_dwin_packet(uart_driver_handle,PRESSURE_BASE_ADDRESS+(i*0x100),current_presso_ee->program_pressure);
-		compile_and_send_5b_dwin_packet(uart_driver_handle,TSECTOR_BASE_ADDRESS+(i*0x100),current_presso_ee->program_step_time);
+		DWIN_packet_queue.DWIN_packet_status |= QUEUE_TRANSMITTING;
+		uart_send(uart_driver_handle, (uint8_t *)&DWIN_packet_queue.pkt[DWIN_packet_queue.tx_queue_index],8);
 	}
-}
+	DWIN_packet_queue.tx_queue_index++;
+	DWIN_packet_queue.tx_queue_index &= (DWIN_PKT_QUEUE_LEN-1);
+	__enable_irq();
 
-void dwin_clear_fields(uint32_t uart_driver_handle)
-{
-uint32_t	i;
-	for(i=0;i<8;i++)
-	{
-		compile_and_send_5b_dwin_packet(uart_driver_handle,PRESSURE_BASE_ADDRESS+(i*0x100),0);
-		compile_and_send_5b_dwin_packet(uart_driver_handle,TSECTOR_BASE_ADDRESS+(i*0x100),0);
-	}
+	return 0;
 }
 

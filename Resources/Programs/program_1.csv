@@ -1,0 +1,16 @@
+/linetype , program_number , program_number_of_lines , program_pressure , program_has_opening , program_step_time , program_complete_time program_close_eoc program_name
+S,1,12,50,1,1,24,1,PROG_1
+/linetype linenumber h0time h1time h2time h3time h4time force_motor_on audionumber ioconfig
+L,1, 0,0,30,30,30,0,1100000000000000
+L,2, 0,0,30,30,30,0,0110000000000000
+L,3, 0,0,30,30,30,0,0011000000000000
+L,4, 0,0,30,30,30,0,0001100000000000
+L,5, 0,0,30,30,30,0,0000110000000000
+L,6, 0,0,30,30,30,0,0000011000000000
+L,7, 0,0,30,30,30,0,0000001100000000
+L,8, 0,0,30,30,30,0,0000000110000000
+L,9, 30,70,0,0,0, 0,0000000000000000
+L,10,30,70,0,0,0, 0,0000000000000000
+L,11,30,70,0,0,0, 0,0000000000000000
+L,12,30,70,0,0,0, 0,0000000000000000
+E

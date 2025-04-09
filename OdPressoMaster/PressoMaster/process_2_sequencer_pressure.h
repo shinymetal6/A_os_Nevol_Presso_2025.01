@@ -14,35 +14,26 @@
  * Project : A_os
 */
 /*
- * dwin_state_machine.h
+ * process_2_sequencer_pressure.h
  *
- *  Created on: Apr 2, 2025
+ *  Created on: Apr 4, 2025
  *      Author: fil
  */
 
-#ifndef PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
-#define PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
+#ifndef PRESSOMASTER_PROCESS_2_SEQUENCER_PRESSURE_H_
+#define PRESSOMASTER_PROCESS_2_SEQUENCER_PRESSURE_H_
 
 typedef struct
 {
-	uint8_t				char_id;
-	uint8_t				ee_program;
-}DWIN_menus_t;
+	uint32_t	adc_zero_data;
+	uint32_t	adc_data;
+	uint32_t	adc_zero_acqcounter;
+	uint32_t	pressure;
+}Presso_SequencerPressure_TypeDef;
 
-typedef struct
-{
-	uint8_t				index;
-	uint8_t				value;
-}DWIN_values_t;
+extern	ADC_Drv_TypeDef	adc_Drv;
 
-#define	DWIN_CMDS_MASK		0xf0
+extern	void pressure_manager(void);
+extern	uint32_t get_pressure(void);
 
-#define	DWIN_PROG_LOAD_HB			0x70
-#define	DWIN_PROG_CMD_HB			0x80
-#define	DWIN_PROG_PLAY				0x81
-#define	DWIN_PROG_STOP				0x80
-
-#define	DWIN_T_SECTOR	0x67
-#define	DWIN_PRESSURE	0x57
-
-#endif /* PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_ */
+#endif /* PRESSOMASTER_PROCESS_2_SEQUENCER_PRESSURE_H_ */

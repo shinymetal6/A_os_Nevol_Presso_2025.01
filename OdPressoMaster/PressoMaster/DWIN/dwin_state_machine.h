@@ -35,12 +35,8 @@ typedef struct
 	uint8_t				value;
 }DWIN_values_t;
 
-#define	DWIN_CMDS_MASK		0xf0
-
-#define	DWIN_PROG_LOAD_HB			0x70
-#define	DWIN_PROG_CMD_HB			0x80
-#define	DWIN_PROG_PLAY				0x81
-#define	DWIN_PROG_STOP				0x80
+#define	DWIN_PROG_PLAY		0x81
+#define	DWIN_PROG_STOP		0x80
 
 #define	DWIN_T_SECTOR	0x67
 #define	DWIN_PRESSURE	0x57
