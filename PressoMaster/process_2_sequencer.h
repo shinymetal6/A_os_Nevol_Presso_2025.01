@@ -34,6 +34,7 @@ typedef struct
 
 typedef struct
 {
+	uint8_t				program_number;
 	uint8_t				state;
 	uint16_t			sequence;
 	uint16_t			step_time;

@@ -31,6 +31,7 @@ uint32_t mem_load_program(uint8_t program_number)
 {
 uint32_t 	address = 0;
 uint32_t	ret_val;
+uint32_t	i;
 
 	size_ss = sizeof(Presso_ee_TypeDef);
 	bzero((uint8_t *)&Presso_opening_ee,sizeof(Presso_ee_TypeDef));
@@ -41,7 +42,14 @@ uint32_t	ret_val;
 		address = program_number * sizeof(Presso_ee_TypeDef);
 		ret_val = i2c_extflash_read(i2cflash_driver_handle,address,(uint8_t *)&Presso_ee,sizeof(Presso_ee_TypeDef));
 		if ((ret_val == 0) && (Presso_ee.program_valid_flag == EE_PROG_VALID_FLAG))
+		{
+			for(i=0;i<Presso_ee.program_number_of_lines;i++)
+			{
+				Presso_ee.Presso_ee_line[i].sector_time = Presso_ee.program_step_time;
+				Presso_ee.Presso_ee_line[i].sector_pressure = Presso_ee.program_pressure;
+			}
 			return 0;
+		}
 	}
 	return 1;
 }

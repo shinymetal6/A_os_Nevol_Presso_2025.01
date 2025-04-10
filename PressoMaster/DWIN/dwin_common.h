@@ -60,8 +60,8 @@ extern	NevolSystem_typedef			NevolSystem;
 
 extern	uint32_t process_from_dwin(uint32_t uart1_driver_handle,uint8_t *uart1_rx_buffer,uint32_t uart_rxlen);
 extern	uint32_t compile_and_send_7b_dwin_packet(uint32_t uart_driver_handle,uint16_t address,uint32_t data);
+extern	uint32_t compile_and_send_5b_dwin_packet_nowait(uint32_t uart_driver_handle,uint16_t address,uint16_t data);
 extern	uint32_t compile_and_send_5b_dwin_packet(uint32_t uart_driver_handle,uint16_t address,uint16_t data);
-extern	uint32_t compile_and_send_5b_dwin_packet_queue(uint32_t uart_driver_handle,uint16_t address,uint16_t data);
 extern	void 	 dwin_update_fields(uint32_t uart_driver_handle, Presso_ee_TypeDef *current_presso_ee);
 extern	void 	 dwin_clear_fields(uint32_t uart_driver_handle);
 extern	uint32_t dwin_state_machine_reset (void);

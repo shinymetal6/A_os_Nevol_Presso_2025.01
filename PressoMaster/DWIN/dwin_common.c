@@ -63,6 +63,20 @@ uint32_t compile_and_send_5b_dwin_packet(uint32_t uart_driver_handle,uint16_t ad
 	return 0;
 }
 
+uint32_t compile_and_send_5b_dwin_packet_nowait(uint32_t uart_driver_handle,uint16_t address,uint16_t data)
+{
+	DWIN_packet.start_flag_1 = HMI_HEADER1;
+	DWIN_packet.start_flag_2 = HMI_HEADER2;
+	DWIN_packet.number_of_bytes = 0x05;
+	DWIN_packet.command = HMI_WRITE_CMD;
+	DWIN_packet.address_h = address>>8;
+	DWIN_packet.address_l = address;
+	DWIN_packet.pktbytes[0] = data >> 8;
+	DWIN_packet.pktbytes[1] = data;
+	dwinsend(uart_driver_handle,8);
+	return 0;
+}
+
 void dwin_update_fields(uint32_t uart_driver_handle,Presso_ee_TypeDef *current_presso_ee)
 {
 uint32_t	i;

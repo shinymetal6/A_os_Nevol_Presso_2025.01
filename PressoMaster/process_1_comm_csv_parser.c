@@ -130,7 +130,8 @@ int	pnum;
 				pstruct->Presso_ee_line[line_index].heater_values[4] = heater_values[4];
 				pstruct->Presso_ee_line[line_index].audionumber = audionumber;
 				pstruct->Presso_ee_line[line_index].gpio = convert_gpio();
-
+				pstruct->Presso_ee_line[line_index].sector_time = program_step_time;
+				pstruct->Presso_ee_line[line_index].sector_pressure = program_pressure;
 				char_processed +=EE_PROG_LINE_SIZE;
 				line_index++;
 				data_ptr += cr_index;

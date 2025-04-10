@@ -32,7 +32,9 @@ typedef struct
 	uint8_t		flags;
 	uint8_t		heater_values[5];
 	uint16_t	gpio;
-	uint8_t		unused[6];
+	uint8_t		sector_time;
+	uint8_t		sector_pressure;
+	uint8_t		unused[4];
 }Presso_ee_line_TypeDef;
 
 /* the program header is 32 bytes long

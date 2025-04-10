@@ -90,6 +90,7 @@ typedef struct
 #include "process_2_sequencer_memparser.h"
 #include "process_2_sequencer_audio.h"
 #include "process_2_sequencer_pressure.h"
+#include "process_2_sequencer_sm.h"
 #include "process_3_dwin_hmi.h"
 #include "DWIN/dwin_common.h"
 
