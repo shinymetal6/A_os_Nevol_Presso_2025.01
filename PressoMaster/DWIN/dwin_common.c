@@ -40,10 +40,10 @@ uint32_t compile_and_send_7b_dwin_packet(uint32_t uart_driver_handle,uint16_t ad
 	DWIN_packet.command = HMI_WRITE_CMD;
 	DWIN_packet.address_h = (uint8_t )address>>8;
 	DWIN_packet.address_l = (uint8_t )address;
-	DWIN_packet.pktbytes[0] = (uint8_t )(data>>24);
-	DWIN_packet.pktbytes[1] = (uint8_t )(data>>16);
-	DWIN_packet.pktbytes[2] = (uint8_t )(data>>8);
-	DWIN_packet.pktbytes[3] = (uint8_t )(data);
+	DWIN_packet.data0_h = (uint8_t )(data>>24);
+	DWIN_packet.data0_l = (uint8_t )(data>>16);
+	DWIN_packet.data1_h = (uint8_t )(data>>8);
+	DWIN_packet.data1_l = (uint8_t )(data);
 	dwinsend(uart_driver_handle,10);
 	return 0;
 }
@@ -56,8 +56,8 @@ uint32_t compile_and_send_5b_dwin_packet(uint32_t uart_driver_handle,uint16_t ad
 	DWIN_packet.command = HMI_WRITE_CMD;
 	DWIN_packet.address_h = address>>8;
 	DWIN_packet.address_l = address;
-	DWIN_packet.pktbytes[0] = data >> 8;
-	DWIN_packet.pktbytes[1] = data;
+	DWIN_packet.data0_h = (uint8_t )(data>>8);
+	DWIN_packet.data0_l = (uint8_t )(data);
 	dwinsend(uart_driver_handle,8);
 	task_delay(10);
 	return 0;
@@ -71,8 +71,8 @@ uint32_t compile_and_send_5b_dwin_packet_nowait(uint32_t uart_driver_handle,uint
 	DWIN_packet.command = HMI_WRITE_CMD;
 	DWIN_packet.address_h = address>>8;
 	DWIN_packet.address_l = address;
-	DWIN_packet.pktbytes[0] = data >> 8;
-	DWIN_packet.pktbytes[1] = data;
+	DWIN_packet.data0_h = (uint8_t )(data>>8);
+	DWIN_packet.data0_l = (uint8_t )(data);
 	dwinsend(uart_driver_handle,8);
 	return 0;
 }

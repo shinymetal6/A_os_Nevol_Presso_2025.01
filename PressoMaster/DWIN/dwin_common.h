@@ -36,7 +36,10 @@ typedef struct
 	uint8_t				command;
 	uint8_t				address_h;
 	uint8_t				address_l;
-	uint8_t				pktbytes[DWIN_PKT_MAX_LEN];
+	uint8_t				data0_h;
+	uint8_t				data0_l;
+	uint8_t				data1_h;
+	uint8_t				data1_l;
 }DWIN_packet_typedef;
 
 #define	HMI_HEADER1		0x5a

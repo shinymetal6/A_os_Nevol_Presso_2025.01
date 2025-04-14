@@ -226,10 +226,6 @@ REVERB_Effect_TypeDef Reverb_Effect =
 		.mix = 0.3F,
 };
 
-PHASER_Effect_TypeDef	Phaser_Effect =
-{
-		.flags = EFFECT_ENABLED,
-};
 void process_2_sequencer_init(void)
 {
 uint32_t	i;
@@ -263,7 +259,7 @@ uint32_t	i;
 	effect_insert(Do_Dummy,NULL,(uint32_t *)&DUMMY_Effect1,dac_Drv.dac_buffer);
 	//effect_insert(Do_Noise,(uint32_t *)&NOISE_Gen,dac_Drv.dac_buffer);
 	effect_insert(Do_Vca,NULL,(uint32_t *)&VCA_Effect1,dac_Drv.dac_buffer);
-	effect_insert(Do_Reverb,Set_Params_Reverb,(uint32_t *)&Reverb_Effect,dac_Drv.dac_buffer);
+	//effect_insert(Do_Reverb,Set_Params_Reverb,(uint32_t *)&Reverb_Effect,dac_Drv.dac_buffer);
 	//effect_insert(Do_Phaser,NULL,(uint32_t *)&Phaser_Effect,dac_Drv.dac_buffer);
 
 	dac_start(dac_driver_handle);

@@ -43,7 +43,7 @@ UART_Drv_TypeDef Uart1_Drv =
 	.rx_max_len = UART_RX_BUF_SIZE,
 	.uart = &huart1,
 	.wakeup_id = WAKEUP_FROM_UART1_IRQ,
-	.timeout = 250,
+	.timeout = 20,
 	.flags = UART_USES_DMA_TX | UART_USES_DMA_RX | UART_WAKEUP_ON_RXFULL | UART_WAKEUP_ON_TIMEOUT,
 };
 
@@ -71,12 +71,8 @@ void led_process(void)
 	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 }
 
-void process_3_update_lcdd( uint16_t address , uint16_t data )
-{
-
-}
-
 uint16_t val = 0;
+uint32_t	rxcount;
 void process_3_dwin_hmi(uint32_t process_id)
 {
 uint32_t	wakeup,flags;
@@ -125,6 +121,7 @@ uint32_t	cleared=0;
 		{
 			if (( flags & WAKEUP_FLAGS_UART_RX) == WAKEUP_FLAGS_UART_RX )
 			{
+				rxcount = uart_get_rxlen(uart1_driver_handle);
 				process_from_dwin(uart1_driver_handle,uart1_rx_buffer,uart_get_rxlen(uart1_driver_handle));
 				bzero(uart1_rx_buffer,UART_RX_BUF_SIZE);
 			}

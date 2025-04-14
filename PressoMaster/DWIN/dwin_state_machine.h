@@ -22,28 +22,31 @@
 
 #ifndef PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
 #define PRESSOMASTER_DWIN_DWIN_STATE_MACHINE_H_
-
+/*
 typedef struct
 {
 	uint8_t				char_id;
 	uint8_t				ee_program;
 }DWIN_menus_t;
 
+
+*/
 typedef struct
 {
-	uint8_t				index;
-	uint8_t				value;
-}DWIN_values_t;
+	uint8_t		program_loaded;
+	uint8_t		running;
+	uint8_t		pause;
+	uint8_t		modified;
+	uint8_t		dwin_value;
+}DWIN_sm_typedef;
 
 #define	DWIN_CMDS_MASK		0xf0
 
 #define	DWIN_PROG_LOAD_HB			0x70
 #define	DWIN_PROG_CMD_HB			0x80
 #define	DWIN_PROG_CMD_MODCYCLE		0x20
-#define	DWIN_PROG_CMD_INCTIME		0x20
-#define	DWIN_PROG_CMD_DECTIME		0x20
-#define	DWIN_PROG_CMD_INCPRESSURE	0x20
-#define	DWIN_PROG_CMD_DECPRESSURE	0x20
+#define	DWIN_PROG_CMD_MODPRESSURE	0x50
+#define	DWIN_PROG_CMD_MODTIME		0x60
 #define	DWIN_PROG_PLAY				0x81
 #define	DWIN_PROG_STOP				0x80
 
