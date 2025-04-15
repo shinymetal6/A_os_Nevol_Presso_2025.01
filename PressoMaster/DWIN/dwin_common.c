@@ -95,5 +95,20 @@ uint32_t	i;
 		compile_and_send_5b_dwin_packet(uart_driver_handle,PRESSURE_BASE_ADDRESS+(i*0x100),0);
 		compile_and_send_5b_dwin_packet(uart_driver_handle,TSECTOR_BASE_ADDRESS+(i*0x100),0);
 	}
+	compile_and_send_5b_dwin_packet(uart_driver_handle,0x1000,9);
 }
+
+uint32_t dwin_highlight_field(uint32_t uart_driver_handle,uint16_t field)
+{
+uint32_t	i;
+	for(i=0;i<8;i++)
+	{
+		if ( field == i )
+			compile_and_send_5b_dwin_packet(uart_driver_handle,HIGHLIGHT_RED+(i*0x100),i);
+		else
+			compile_and_send_5b_dwin_packet(uart_driver_handle,HIGHLIGHT_GRAY+(i*0x100),i);
+	}
+	return 0;
+}
+
 

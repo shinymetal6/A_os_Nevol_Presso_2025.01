@@ -80,6 +80,8 @@ typedef struct
 
 #define BANK_2_ADDRESS	0x08100000
 
+#define	ACTIVATE_CODE			0xa5
+#define	DEACTIVATE_CODE			0x5a
 #define	UPDATE_LCD_PARAMS		0x7e
 #define	SEQUENCE_FINISHED		0xe7
 

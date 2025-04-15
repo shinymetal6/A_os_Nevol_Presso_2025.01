@@ -190,29 +190,22 @@ DWIN_packet_typedef	*DWIN_rxed_packet = (DWIN_packet_typedef *)uart1_rx_buffer;
 
 	if ( DWIN_rxed_packet->number_of_bytes != 6 )
 		return 1;
-	if ( DWIN_rxed_packet->address_h < 0x0f )
+	if ( DWIN_rxed_packet->address_h == DWIN_PROG_CMD_GLOBALTIME )
 	{
-		switch(DWIN_rxed_packet->address_h)
-		{
-		case	7 : DWIN_sm.program_loaded = 1;break;
-		case	6 : DWIN_sm.program_loaded = 2;break;
-		case	5 : DWIN_sm.program_loaded = 3;break;
-		case	4 : DWIN_sm.program_loaded = 4;break;
-		case	3 : DWIN_sm.program_loaded = 5;break;
-		case	2 : DWIN_sm.program_loaded = 6;break;
-		case	1 : DWIN_sm.program_loaded = 7;break;
-		}
+		compile_and_send_5b_dwin_packet(uart_driver_handle,0x0130,12);
+		return 0;
+	}
+
+	if ( DWIN_rxed_packet->address_h == DWIN_PROG_CMD_LOAD )
+	{
+		DWIN_sm.program_loaded = (DWIN_rxed_packet->address_l >> 4)+1;
 		hmi_to_seq_mbx[0] = CMDPARSER_RET_LOAD;
 		hmi_to_seq_mbx[1] = DWIN_sm.program_loaded;
 		mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,hmi_to_seq_mbx,2);
+		return 0;
 	}
 	switch(DWIN_rxed_packet->address_h & DWIN_CMDS_MASK)
 	{
-	case	DWIN_PROG_LOAD_HB:
-		hmi_to_seq_mbx[0] = CMDPARSER_RET_LOAD;
-		hmi_to_seq_mbx[1] = DWIN_sm.program_loaded = (DWIN_rxed_packet->address_h & 0x0f) + 1;
-		mbx_send(PRESSO_SEQUENCER_PROCESS,PRESSO_HMI_MBX,hmi_to_seq_mbx,2);
-		break;
 	case DWIN_PROG_CMD_HB :
 		if ( DWIN_sm.program_loaded )
 		{

@@ -72,6 +72,7 @@ void led_process(void)
 }
 
 uint16_t val = 0;
+
 uint32_t	rxcount;
 void process_3_dwin_hmi(uint32_t process_id)
 {
@@ -92,11 +93,16 @@ uint32_t	cleared=0;
 
 		if (( wakeup & WAKEUP_FROM_TIMER) == WAKEUP_FROM_TIMER)
 		{
-			if ( cleared == 0 )
+			if ( cleared < 5 )
 			{
-				dwin_clear_fields(uart1_driver_handle);
-				compile_and_send_5b_dwin_packet(uart1_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
-				cleared = 1;
+				if (cleared == 0 )
+					dwin_clear_fields(uart1_driver_handle);
+				if (cleared == 1 )
+					compile_and_send_5b_dwin_packet(uart1_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
+				if ( cleared == 2 )
+					compile_and_send_5b_dwin_packet(uart1_driver_handle,HIGHLIGHT_RED,0);
+
+				cleared ++;
 			}
 			led_process();
 		}
@@ -114,6 +120,14 @@ uint32_t	cleared=0;
 				{
 					compile_and_send_5b_dwin_packet(uart1_driver_handle,PLAY_PAUSE_BTN_ADDR,PLAY_PAUSE_BTN_PLAY);
 					dwin_state_machine_reset();
+				}
+				if ( hmi_from_seq_mbx[0] == ACTIVATE_CODE )
+				{
+					dwin_highlight_field(uart1_driver_handle,(hmi_from_seq_mbx[2]<<8 ) | hmi_from_seq_mbx[3]);
+				}
+				if ( hmi_from_seq_mbx[0] == DEACTIVATE_CODE )
+				{
+					dwin_highlight_field(uart1_driver_handle,(hmi_from_seq_mbx[2]<<8 ) | hmi_from_seq_mbx[3]);
 				}
 			}
 		}

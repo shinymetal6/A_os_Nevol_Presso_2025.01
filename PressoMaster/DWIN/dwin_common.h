@@ -57,6 +57,10 @@ typedef struct
 #define	PRESSURE_BASE_ADDRESS	0x5000
 #define	TSECTOR_BASE_ADDRESS	0x6000
 
+#define	HIGHLIGHT_GRAY			0x4000
+#define	HIGHLIGHT_CYAN			0x5000
+#define	HIGHLIGHT_RED			0x1000
+#define	HIGHLIGHT_GREEN			0x2000
 
 extern	DWIN_packet_typedef			DWIN_packet;
 extern	NevolSystem_typedef			NevolSystem;
@@ -68,6 +72,7 @@ extern	uint32_t compile_and_send_5b_dwin_packet(uint32_t uart_driver_handle,uint
 extern	void 	 dwin_update_fields(uint32_t uart_driver_handle, Presso_ee_TypeDef *current_presso_ee);
 extern	void 	 dwin_clear_fields(uint32_t uart_driver_handle);
 extern	uint32_t dwin_state_machine_reset (void);
+extern	uint32_t dwin_highlight_field(uint32_t uart_driver_handle,uint16_t field);
 
 
 #endif /* PRESSOMASTER_DWIN_DWIN_COMMON_H_ */

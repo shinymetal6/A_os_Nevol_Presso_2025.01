@@ -38,10 +38,14 @@ typedef struct
 	uint8_t		pause;
 	uint8_t		modified;
 	uint8_t		dwin_value;
+	uint16_t 	active_code;
+	uint16_t 	last_active_code;
 }DWIN_sm_typedef;
 
 #define	DWIN_CMDS_MASK		0xf0
 
+#define	DWIN_PROG_CMD_GLOBALTIME	0x01
+#define	DWIN_PROG_CMD_LOAD			0x02
 #define	DWIN_PROG_LOAD_HB			0x70
 #define	DWIN_PROG_CMD_HB			0x80
 #define	DWIN_PROG_CMD_MODCYCLE		0x20

@@ -36,6 +36,7 @@ typedef struct
 {
 	uint8_t				program_number;
 	uint8_t				state;
+	uint8_t				active_sectors;
 	uint16_t			sequence;
 	uint16_t			step_time;
 	uint16_t			complete_time;

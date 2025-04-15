@@ -22,6 +22,14 @@
 #ifndef PRESSOMASTER_PROCESS_3_DWIN_HMI_H_
 #define PRESSOMASTER_PROCESS_3_DWIN_HMI_H_
 
+
+typedef struct
+{
+	uint16_t 			active_code;
+	uint16_t 			last_active_code;
+}Presso_DWIN_HMI_TypeDef;
+
+
 extern	Presso_ee_TypeDef *get_sequencer_params(void);
 
 #endif /* PRESSOMASTER_PROCESS_3_DWIN_HMI_H_ */

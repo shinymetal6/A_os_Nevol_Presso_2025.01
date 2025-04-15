@@ -29,6 +29,8 @@ extern	Presso_ee_TypeDef			Presso_opening_ee;
 extern	Presso_Sequencer_TypeDef	Presso_Sequencer;
 extern	Presso_soundseq_TypeDef		Presso_soundseq;
 
+extern	uint8_t		mbx_seq_2_hmi[sizeof(uint32_t)];
+
 void setup_state(Presso_ee_TypeDef	*next_pstruct)
 {
 	process_2_sequencer_set_gpio(next_pstruct->Presso_ee_line[Presso_Sequencer.sequence].gpio);
@@ -189,6 +191,11 @@ Presso_ee_TypeDef	*pstruct;
 		else
 		{
 			Presso_Sequencer.sequence ++;
+			mbx_seq_2_hmi[0] = ACTIVATE_CODE;
+			mbx_seq_2_hmi[1] = Presso_Sequencer.sequence;
+			mbx_seq_2_hmi[2] = (pstruct->Presso_ee_line->gpio >> 8) & 0xff;
+			mbx_seq_2_hmi[3] = pstruct->Presso_ee_line->gpio & 0xff;
+			mbx_send(PRESSO_HMI_PROCESS,PRESSO_HMI_MBX,mbx_seq_2_hmi,4);
 		}
 		Presso_Sequencer.step_time = pstruct->Presso_ee_line[Presso_Sequencer.sequence].sector_time;
 		setup_state(pstruct);
